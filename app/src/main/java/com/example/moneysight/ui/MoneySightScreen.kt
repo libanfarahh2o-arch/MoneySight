@@ -91,6 +91,7 @@ import com.moneysight.app.ui.theme.TextPrimaryOnDark
 import com.moneysight.app.ui.theme.TextSecondaryOnDark
 import com.moneysight.app.util.CurrencyUtils
 import com.moneysight.app.viewmodel.AppScreen
+import com.moneysight.app.viewmodel.MainExpenseStampFilter
 import com.moneysight.app.viewmodel.MoneySightViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -160,9 +161,10 @@ fun MoneySightScreen(
     // Stamp Mode State for Main Screen
     val isStampModeActive by viewModel.isStampModeActive.collectAsStateWithLifecycle()
 
-    // Main Page Stamped / Unstamped Totals
+    // Main Page Stamped / Unstamped Totals & Active Stamp Filter
     val stampedExpensesTotal by viewModel.stampedExpensesTotal.collectAsStateWithLifecycle()
     val unstampedExpensesTotal by viewModel.unstampedExpensesTotal.collectAsStateWithLifecycle()
+    val mainExpenseStampFilter by viewModel.mainExpenseStampFilter.collectAsStateWithLifecycle()
 
     // Select Bill to Edit/Delete State
     val showSelectBillToEditDialog by viewModel.showSelectBillToEditDialog.collectAsStateWithLifecycle()
@@ -341,21 +343,30 @@ fun MoneySightScreen(
                         if (isExpensesExpanded) {
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            // Spent, Stamped, Unstamped Summary Row
+                            // Interactive Spent, Stamped, Unstamped Summary Filter Tabs
                             val spentDisplay = if (selectedCategoryFilter != null || !selectedGroupFilterId.isNullOrBlank() || expenseSearchQuery.isNotBlank()) filteredTotalExpenses else totalExpenses
+
+                            val isSpentActive = mainExpenseStampFilter == MainExpenseStampFilter.SPENT_ALL
+                            val isStampedActive = mainExpenseStampFilter == MainExpenseStampFilter.STAMPED_ONLY
+                            val isUnstampedActive = mainExpenseStampFilter == MainExpenseStampFilter.UNSTAMPED_ONLY
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Spent Box
+                                // 1. Spent Box (Mix/All Bills by Default)
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(ExpenseRoseContainer)
-                                        .border(1.dp, ExpenseRose.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                                        .background(if (isSpentActive) ExpenseRoseContainer else ExpenseSurface)
+                                        .border(
+                                            if (isSpentActive) 1.5.dp else 1.dp,
+                                            if (isSpentActive) ExpenseRose else ExpenseBorder,
+                                            RoundedCornerShape(12.dp)
+                                        )
+                                        .clickable { viewModel.selectMainExpenseStampFilter(MainExpenseStampFilter.SPENT_ALL) }
                                         .padding(horizontal = 6.dp, vertical = 8.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -378,13 +389,18 @@ fun MoneySightScreen(
                                     }
                                 }
 
-                                // Stamped Box
+                                // 2. Stamped Box (Stamped Only)
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(IncomeGreenContainer)
-                                        .border(1.dp, IncomeGreen.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                                        .background(if (isStampedActive) IncomeGreenContainer else ExpenseSurface)
+                                        .border(
+                                            if (isStampedActive) 1.5.dp else 1.dp,
+                                            if (isStampedActive) IncomeGreen else ExpenseBorder,
+                                            RoundedCornerShape(12.dp)
+                                        )
+                                        .clickable { viewModel.selectMainExpenseStampFilter(MainExpenseStampFilter.STAMPED_ONLY) }
                                         .padding(horizontal = 6.dp, vertical = 8.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -407,13 +423,18 @@ fun MoneySightScreen(
                                     }
                                 }
 
-                                // Unstamped Box
+                                // 3. Unstamped Box (Unstamped Only)
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(ForestSurfaceVariant)
-                                        .border(1.dp, TextSecondaryOnDark.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                        .background(if (isUnstampedActive) ForestSurfaceVariant else ExpenseSurface)
+                                        .border(
+                                            if (isUnstampedActive) 1.5.dp else 1.dp,
+                                            if (isUnstampedActive) TextPrimaryOnDark.copy(alpha = 0.6f) else ExpenseBorder,
+                                            RoundedCornerShape(12.dp)
+                                        )
+                                        .clickable { viewModel.selectMainExpenseStampFilter(MainExpenseStampFilter.UNSTAMPED_ONLY) }
                                         .padding(horizontal = 6.dp, vertical = 8.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -422,7 +443,7 @@ fun MoneySightScreen(
                                             text = "UNSTAMPED",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
-                                            color = TextSecondaryOnDark,
+                                            color = if (isUnstampedActive) TextPrimaryOnDark else TextSecondaryOnDark,
                                             fontSize = 10.sp
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))

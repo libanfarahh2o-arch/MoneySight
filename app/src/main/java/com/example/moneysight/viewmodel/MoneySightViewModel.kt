@@ -34,6 +34,12 @@ enum class ChecklistFilter(val label: String) {
     UNSTAMPED_ONLY("Unstamped Bills")
 }
 
+enum class MainExpenseStampFilter {
+    SPENT_ALL,
+    STAMPED_ONLY,
+    UNSTAMPED_ONLY
+}
+
 enum class AppScreen {
     MAIN,
     BILL_CHECKLIST
@@ -332,22 +338,45 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     private val _selectedSortOrder = MutableStateFlow(ExpenseSortOrder.NEWEST)
     val selectedSortOrder: StateFlow<ExpenseSortOrder> = _selectedSortOrder.asStateFlow()
 
+    private val _mainExpenseStampFilter = MutableStateFlow(MainExpenseStampFilter.SPENT_ALL)
+    val mainExpenseStampFilter: StateFlow<MainExpenseStampFilter> = _mainExpenseStampFilter.asStateFlow()
+
+    fun selectMainExpenseStampFilter(filter: MainExpenseStampFilter) {
+        _mainExpenseStampFilter.value = filter
+    }
+
     // Filtered & Sorted Expenses List for Main Screen
     val filteredExpenses: StateFlow<List<Expense>> = combine(
         expenses,
         selectedCategoryFilter,
         selectedGroupFilterId,
         expenseSearchQuery,
-        selectedSortOrder
-    ) { list, categoryFilter, groupFilterId, query, sort ->
+        selectedSortOrder,
+        mainExpenseStampFilter
+    ) { args: Array<Any?> ->
+        @Suppress("UNCHECKED_CAST")
+        val list = args[0] as List<Expense>
+        val categoryFilter = args[1] as String?
+        val groupFilterId = args[2] as String?
+        val query = args[3] as String
+        val sort = args[4] as ExpenseSortOrder
+        val stampFilter = args[5] as MainExpenseStampFilter
+
         var result = list
 
-        // 1. Expense Group Filter (e.g. "Dad", "House", "Alex")
+        // 1. Stamp Filter on Main Screen (SPENT_ALL = All/Mix by default, STAMPED_ONLY = Stamped, UNSTAMPED_ONLY = Unstamped)
+        result = when (stampFilter) {
+            MainExpenseStampFilter.SPENT_ALL -> result
+            MainExpenseStampFilter.STAMPED_ONLY -> result.filter { it.isStamped }
+            MainExpenseStampFilter.UNSTAMPED_ONLY -> result.filter { !it.isStamped }
+        }
+
+        // 2. Expense Group Filter (e.g. "Dad", "House", "Alex")
         if (!groupFilterId.isNullOrBlank() && groupFilterId != "ALL") {
             result = result.filter { it.groupId == groupFilterId }
         }
 
-        // 2. Text Search Filter
+        // 3. Text Search Filter
         if (query.isNotBlank()) {
             val q = query.trim()
             result = result.filter {
@@ -355,7 +384,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        // 3. Category Filter
+        // 4. Category Filter
         if (!categoryFilter.isNullBLankOrAll()) {
             result = result.filter { expense ->
                 val categoryName = ExpenseCategories.getCategoryForExpense(expense.description)
@@ -364,7 +393,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        // 4. Sorting: Preserve original position based on selected sort order (stamped bills stay in position)
+        // 5. Sorting
         when (sort) {
             ExpenseSortOrder.NEWEST -> result.sortedByDescending { it.timestamp }
             ExpenseSortOrder.OLDEST -> result.sortedBy { it.timestamp }
@@ -670,6 +699,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _selectedGroupFilterId.value = null
         _expenseSearchQuery.value = ""
         _selectedSortOrder.value = ExpenseSortOrder.NEWEST
+        _mainExpenseStampFilter.value = MainExpenseStampFilter.SPENT_ALL
     }
 
     // Expense Actions
