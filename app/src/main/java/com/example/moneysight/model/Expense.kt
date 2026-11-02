@@ -1,0 +1,17 @@
+package com.moneysight.app.model
+
+import kotlinx.serialization.Serializable
+import java.util.UUID
+
+@Serializable
+data class Expense(
+    val id: String = UUID.randomUUID().toString(),
+    val description: String,
+    val amount: Double,
+    val groupId: String = "general",
+    val groupName: String = "General",
+    val isPaid: Boolean = false,
+    val isStamped: Boolean = false,
+    val notes: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
