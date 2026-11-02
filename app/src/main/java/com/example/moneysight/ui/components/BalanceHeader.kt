@@ -8,6 +8,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,10 +88,11 @@ fun BalanceHeader(
             ) {
                 // Top-Left: Compact Theme Mode Switcher Button
                 if (onToggleThemeClicked != null) {
+                    val isSystemDark = isSystemInDarkTheme()
                     val (themeIcon, themeLabel) = when (currentThemeMode) {
                         ThemeMode.DARK -> Icons.Default.DarkMode to "Dark"
                         ThemeMode.LIGHT -> Icons.Default.WbSunny to "Light"
-                        ThemeMode.SYSTEM -> Icons.Default.SettingsBrightness to "Auto"
+                        ThemeMode.SYSTEM -> Icons.Default.SettingsBrightness to if (isSystemDark) "Auto (Dark)" else "Auto (Light)"
                     }
                     Row(
                         modifier = Modifier
