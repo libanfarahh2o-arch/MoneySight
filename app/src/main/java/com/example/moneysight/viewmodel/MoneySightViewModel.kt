@@ -345,14 +345,13 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _mainExpenseStampFilter.value = filter
     }
 
-    // Filtered & Sorted Expenses List for Main Screen
-    val filteredExpenses: StateFlow<List<Expense>> = combine(
+    // Base Filtered Expenses for Main Screen (reflects Group, Search, Category & Sort)
+    val baseFilteredExpenses: StateFlow<List<Expense>> = combine(
         expenses,
         selectedCategoryFilter,
         selectedGroupFilterId,
         expenseSearchQuery,
-        selectedSortOrder,
-        mainExpenseStampFilter
+        selectedSortOrder
     ) { args: Array<Any?> ->
         @Suppress("UNCHECKED_CAST")
         val list = args[0] as List<Expense>
@@ -360,23 +359,15 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         val groupFilterId = args[2] as String?
         val query = args[3] as String
         val sort = args[4] as ExpenseSortOrder
-        val stampFilter = args[5] as MainExpenseStampFilter
 
         var result = list
 
-        // 1. Stamp Filter on Main Screen (SPENT_ALL = All/Mix by default, STAMPED_ONLY = Stamped, UNSTAMPED_ONLY = Unstamped)
-        result = when (stampFilter) {
-            MainExpenseStampFilter.SPENT_ALL -> result
-            MainExpenseStampFilter.STAMPED_ONLY -> result.filter { it.isStamped }
-            MainExpenseStampFilter.UNSTAMPED_ONLY -> result.filter { !it.isStamped }
-        }
-
-        // 2. Expense Group Filter (e.g. "Dad", "House", "Alex")
+        // 1. Expense Group Filter (e.g. "Dad", "House", "Alex")
         if (!groupFilterId.isNullOrBlank() && groupFilterId != "ALL") {
             result = result.filter { it.groupId == groupFilterId }
         }
 
-        // 3. Text Search Filter
+        // 2. Text Search Filter
         if (query.isNotBlank()) {
             val q = query.trim()
             result = result.filter {
@@ -384,7 +375,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        // 4. Category Filter
+        // 3. Category Filter
         if (!categoryFilter.isNullBLankOrAll()) {
             result = result.filter { expense ->
                 val categoryName = ExpenseCategories.getCategoryForExpense(expense.description)
@@ -393,7 +384,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
-        // 5. Sorting
+        // 4. Sorting
         when (sort) {
             ExpenseSortOrder.NEWEST -> result.sortedByDescending { it.timestamp }
             ExpenseSortOrder.OLDEST -> result.sortedBy { it.timestamp }
@@ -406,7 +397,23 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = emptyList()
     )
 
-    val filteredTotalExpenses: StateFlow<Double> = filteredExpenses.map { list ->
+    // Filtered & Sorted Expenses List for Main Screen
+    val filteredExpenses: StateFlow<List<Expense>> = combine(
+        baseFilteredExpenses,
+        mainExpenseStampFilter
+    ) { list, stampFilter ->
+        when (stampFilter) {
+            MainExpenseStampFilter.SPENT_ALL -> list
+            MainExpenseStampFilter.STAMPED_ONLY -> list.filter { it.isStamped }
+            MainExpenseStampFilter.UNSTAMPED_ONLY -> list.filter { !it.isStamped }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    val filteredTotalExpenses: StateFlow<Double> = baseFilteredExpenses.map { list ->
         list.sumOf { it.amount }
     }.stateIn(
         scope = viewModelScope,
@@ -414,8 +421,8 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = 0.0
     )
 
-    // Main Page Stamped vs Unstamped Statistics (reflects selected group & search filters)
-    val stampedExpensesTotal: StateFlow<Double> = filteredExpenses.map { list ->
+    // Main Page Stamped vs Unstamped Statistics (reflects selected group & search filters without resetting on tab click)
+    val stampedExpensesTotal: StateFlow<Double> = baseFilteredExpenses.map { list ->
         list.filter { it.isStamped }.sumOf { it.amount }
     }.stateIn(
         scope = viewModelScope,
@@ -423,7 +430,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = 0.0
     )
 
-    val unstampedExpensesTotal: StateFlow<Double> = filteredExpenses.map { list ->
+    val unstampedExpensesTotal: StateFlow<Double> = baseFilteredExpenses.map { list ->
         list.filter { !it.isStamped }.sumOf { it.amount }
     }.stateIn(
         scope = viewModelScope,
