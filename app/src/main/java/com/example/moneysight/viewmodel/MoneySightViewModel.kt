@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 enum class ExpenseSortOrder(val label: String) {
     NEWEST("Newest First"),
     OLDEST("Oldest First"),
+    ALPHABETICAL("Alphabetical (A-Z)"),
     AMOUNT_HIGH_LOW("Highest Amount"),
     AMOUNT_LOW_HIGH("Lowest Amount")
 }
@@ -388,6 +389,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         when (sort) {
             ExpenseSortOrder.NEWEST -> result.sortedByDescending { it.timestamp }
             ExpenseSortOrder.OLDEST -> result.sortedBy { it.timestamp }
+            ExpenseSortOrder.ALPHABETICAL -> result.sortedBy { it.description.lowercase() }
             ExpenseSortOrder.AMOUNT_HIGH_LOW -> result.sortedByDescending { it.amount }
             ExpenseSortOrder.AMOUNT_LOW_HIGH -> result.sortedBy { it.amount }
         }
