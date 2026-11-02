@@ -194,7 +194,7 @@ fun MoneySightScreen(
                 shape = CircleShape,
                 modifier = Modifier
                     .navigationBarsPadding()
-                    .offset(y = 12.dp)
+                    .offset(y = 24.dp)
                     .padding(end = 4.dp)
             ) {
                 Box(
