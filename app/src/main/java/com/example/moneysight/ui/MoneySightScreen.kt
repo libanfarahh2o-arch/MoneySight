@@ -372,7 +372,7 @@ fun MoneySightScreen(
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(
-                                            text = "SPENT",
+                                            text = "TOTAL",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = ExpenseRose,
