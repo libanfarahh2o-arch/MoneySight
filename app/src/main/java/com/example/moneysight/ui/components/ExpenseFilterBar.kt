@@ -23,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -80,8 +79,6 @@ fun ExpenseFilterBar(
     val keyboardController = LocalSoftwareKeyboardController.current
     var showSortDropdown by remember { mutableStateOf(false) }
     var isSearchExpanded by remember { mutableStateOf(searchQuery.isNotEmpty()) }
-
-    val hasActiveFilter = !selectedCategory.isNullOrBlank() || !selectedGroupId.isNullOrBlank() || searchQuery.isNotBlank() || selectedSortOrder != ExpenseSortOrder.NEWEST
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -300,36 +297,6 @@ fun ExpenseFilterBar(
                         color = if (isSelected) OnEntryTeal else EntryTeal,
                         fontSize = 12.sp
                     )
-                }
-            }
-
-            if (hasActiveFilter) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(ForestSurfaceVariant)
-                        .clickable {
-                            onClearFiltersClicked()
-                            isSearchExpanded = false
-                        }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.FilterList,
-                            contentDescription = "Clear All Filters",
-                            tint = TextSecondaryOnDark,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Clear Filters",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = TextSecondaryOnDark,
-                            fontSize = 11.sp
-                        )
-                    }
                 }
             }
         }
