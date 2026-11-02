@@ -160,7 +160,7 @@ fun BillChecklistScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Flex",
+                            text = "Preview",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimaryOnDark
@@ -643,7 +643,7 @@ fun BillChecklistScreen(
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = when (checklistFilter) {
-                                    ChecklistFilter.UNPAID_ONLY -> "You have paid all items in Flex. Excellent job!"
+                                    ChecklistFilter.UNPAID_ONLY -> "You have paid all items in Preview. Excellent job!"
                                     ChecklistFilter.PAID_ONLY -> "Tick off unpaid bills below to track them as paid."
                                     ChecklistFilter.ALL -> "Add expenses on the main screen to track them here."
                                     ChecklistFilter.STAMPED_ONLY -> "Stamp bills on the main page to filter them here."
@@ -844,7 +844,7 @@ fun BillChecklistScreen(
             },
             text = {
                 Text(
-                    text = "Are you sure you want to reset all bills to unpaid? This will unmark all paid bills so you can start a new Flex list.",
+                    text = "Are you sure you want to reset all bills to unpaid? This will unmark all paid bills so you can start a new Preview list.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondaryOnDark
                 )

@@ -215,7 +215,7 @@ fun MoneySightScreen(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Flex",
+                    text = "Preview",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = OnChecklistPurple
