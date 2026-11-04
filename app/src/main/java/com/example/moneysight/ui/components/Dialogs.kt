@@ -410,7 +410,7 @@ fun IncomeSourcesDialog(
                                     unfocusedTextColor = TextPrimaryOnDark
                                 )
                             )
-                            val isValid = incomeAmountInput.toDoubleOrNull()?.let { it > 0 } == true
+                            val isValid = incomeAmountInput.toDoubleOrNull()?.let { it >= 0 } == true
                             Button(
                                 onClick = onAddIncomeClicked,
                                 enabled = isValid,
@@ -612,7 +612,7 @@ fun EditIncomeSourceDialog(
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                enabled = nameInput.isNotBlank() && amountInput.toDoubleOrNull()?.let { it > 0 } == true,
+                enabled = nameInput.isNotBlank() && amountInput.toDoubleOrNull()?.let { it >= 0 } == true,
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MintGreenPrimary,
