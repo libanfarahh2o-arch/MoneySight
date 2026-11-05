@@ -179,27 +179,22 @@ fun ExpenseItem(
                         color = if (expense.isStamped) IncomeGreen else ExpenseRose
                     )
 
-                    if (expense.dueDate.isNotBlank()) {
+                    if (!expense.isStamped && expense.dueDate.isNotBlank()) {
                         Spacer(modifier = Modifier.height(3.dp))
                         val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
-                        val (statusText, textColor) = when {
-                            expense.isStamped && dueStatus is DueDateStatus.Overdue -> {
-                                "Due" to IncomeGreen
+                        val (statusText, textColor) = when (dueStatus) {
+                            is DueDateStatus.Today -> "Due Today" to WarningAmber
+                            is DueDateStatus.DaysRemaining -> {
+                                val days = dueStatus.days
+                                val label = if (days == 1) "1 day left" else "$days days left"
+                                label to (if (days <= 3) WarningAmber else IncomeGreen)
                             }
-                            else -> when (dueStatus) {
-                                is DueDateStatus.Today -> "Due Today" to WarningAmber
-                                is DueDateStatus.DaysRemaining -> {
-                                    val days = dueStatus.days
-                                    val label = if (days == 1) "1 day left" else "$days days left"
-                                    label to (if (days <= 3) WarningAmber else IncomeGreen)
-                                }
-                                is DueDateStatus.Overdue -> {
-                                    val days = dueStatus.days
-                                    val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
-                                    label to WarningRed
-                                }
-                                is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
+                            is DueDateStatus.Overdue -> {
+                                val days = dueStatus.days
+                                val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
+                                label to WarningRed
                             }
+                            is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
                         }
 
                         Row(
