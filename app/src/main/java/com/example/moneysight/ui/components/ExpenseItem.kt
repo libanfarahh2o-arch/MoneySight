@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.StickyNote2
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Card
@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -143,32 +144,30 @@ fun ExpenseItem(
                         val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
                         val (statusText, textColor) = when {
                             expense.isStamped && dueStatus is DueDateStatus.Overdue -> {
-                                "Due: ${expense.dueDate}" to IncomeGreen
+                                "Due" to IncomeGreen
                             }
                             else -> when (dueStatus) {
-                                is DueDateStatus.Today -> "Due Today (${expense.dueDate})" to WarningAmber
+                                is DueDateStatus.Today -> "Due Today" to WarningAmber
                                 is DueDateStatus.DaysRemaining -> {
                                     val days = dueStatus.days
-                                    val label = if (days == 1) "1 day left (${expense.dueDate})" else "$days days left (${expense.dueDate})"
+                                    val label = if (days == 1) "1 day left" else "$days days left"
                                     label to (if (days <= 3) WarningAmber else IncomeGreen)
                                 }
                                 is DueDateStatus.Overdue -> {
                                     val days = dueStatus.days
-                                    val label = if (days == 1) "Overdue 1 day (${expense.dueDate})" else "Overdue $days days (${expense.dueDate})"
+                                    val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
                                     label to WarningRed
                                 }
-                                is DueDateStatus.Invalid -> "Due: ${expense.dueDate}" to TextSecondaryOnDark
+                                is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
                             }
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.CalendarToday,
-                                contentDescription = "Days left to payment",
-                                tint = textColor,
-                                modifier = Modifier.size(11.dp)
+                            CalendarDayIcon(
+                                dayText = expense.dueDate,
+                                tint = textColor
                             )
-                            Spacer(modifier = Modifier.width(3.dp))
+                            Spacer(modifier = Modifier.width(5.dp))
                             Text(
                                 text = statusText,
                                 style = MaterialTheme.typography.bodySmall,
@@ -236,6 +235,54 @@ fun ExpenseItem(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Custom Mini Calendar Icon rendering the day/date number directly inside the calendar page.
+ */
+@Composable
+fun CalendarDayIcon(
+    dayText: String,
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    val numericDay = dayText.replace(Regex("[^0-9]"), "").ifBlank { dayText.take(2) }
+
+    Box(
+        modifier = modifier
+            .size(width = 18.dp, height = 18.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .border(1.2.dp, tint, RoundedCornerShape(4.dp))
+            .background(tint.copy(alpha = 0.12f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .background(tint)
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = numericDay,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = tint,
+                    fontSize = 8.sp,
+                    maxLines = 1
+                )
             }
         }
     }
