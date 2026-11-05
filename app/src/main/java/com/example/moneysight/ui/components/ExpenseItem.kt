@@ -139,47 +139,6 @@ fun ExpenseItem(
                         }
                     }
 
-                    if (expense.dueDate.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(3.dp))
-                        val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
-                        val (statusText, textColor) = when {
-                            expense.isStamped && dueStatus is DueDateStatus.Overdue -> {
-                                "Due" to IncomeGreen
-                            }
-                            else -> when (dueStatus) {
-                                is DueDateStatus.Today -> "Due Today" to WarningAmber
-                                is DueDateStatus.DaysRemaining -> {
-                                    val days = dueStatus.days
-                                    val label = if (days == 1) "1 day left" else "$days days left"
-                                    label to (if (days <= 3) WarningAmber else IncomeGreen)
-                                }
-                                is DueDateStatus.Overdue -> {
-                                    val days = dueStatus.days
-                                    val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
-                                    label to WarningRed
-                                }
-                                is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
-                            }
-                        }
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CalendarDayIcon(
-                                dayText = expense.dueDate,
-                                tint = textColor
-                            )
-                            Spacer(modifier = Modifier.width(5.dp))
-                            Text(
-                                text = statusText,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                color = textColor,
-                                fontSize = 11.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
                     if (expense.notes.isNotBlank()) {
                         Spacer(modifier = Modifier.height(3.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -205,17 +164,65 @@ fun ExpenseItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Right: Amount + Stamp Badge
+            // Right Side: Amount + Due Date Indicator Underneath + Stamp Mode Button
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "-${CurrencyUtils.formatPounds(expense.amount)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (expense.isStamped) IncomeGreen else ExpenseRose
-                )
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = "-${CurrencyUtils.formatPounds(expense.amount)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (expense.isStamped) IncomeGreen else ExpenseRose
+                    )
+
+                    if (expense.dueDate.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(3.dp))
+                        val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
+                        val (statusText, textColor) = when {
+                            expense.isStamped && dueStatus is DueDateStatus.Overdue -> {
+                                "Due" to IncomeGreen
+                            }
+                            else -> when (dueStatus) {
+                                is DueDateStatus.Today -> "Due Today" to WarningAmber
+                                is DueDateStatus.DaysRemaining -> {
+                                    val days = dueStatus.days
+                                    val label = if (days == 1) "1 day left" else "$days days left"
+                                    label to (if (days <= 3) WarningAmber else IncomeGreen)
+                                }
+                                is DueDateStatus.Overdue -> {
+                                    val days = dueStatus.days
+                                    val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
+                                    label to WarningRed
+                                }
+                                is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
+                            }
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            CalendarDayIcon(
+                                dayText = expense.dueDate,
+                                tint = textColor
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = statusText,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                                color = textColor,
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
 
                 if (isStampModeActive) {
                     Box(
