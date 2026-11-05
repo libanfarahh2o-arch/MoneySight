@@ -407,11 +407,14 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             return numericOnly.toIntOrNull() ?: Int.MAX_VALUE
         }
 
-        // 4. Sorting
+        // 4. Sorting & Filter Rules
         when (sort) {
             ExpenseSortOrder.NEWEST -> result.sortedByDescending { it.timestamp }
             ExpenseSortOrder.OLDEST -> result.sortedBy { it.timestamp }
-            ExpenseSortOrder.EARLIEST_DUE -> result.sortedBy { parseDueDayNumber(it.dueDate) }
+            ExpenseSortOrder.EARLIEST_DUE -> {
+                // Filter out any bill that has a paid stamp on it (!isStamped)
+                result.filter { !it.isStamped }.sortedBy { parseDueDayNumber(it.dueDate) }
+            }
             ExpenseSortOrder.ALPHABETICAL -> result.sortedBy { it.description.lowercase() }
             ExpenseSortOrder.AMOUNT_HIGH_LOW -> result.sortedByDescending { it.amount }
             ExpenseSortOrder.AMOUNT_LOW_HIGH -> result.sortedBy { it.amount }
