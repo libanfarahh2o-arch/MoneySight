@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 enum class ExpenseSortOrder(val label: String) {
     NEWEST("Newest First"),
     OLDEST("Oldest First"),
+    EARLIEST_DUE("Earliest Bill to Pay"),
     ALPHABETICAL("Alphabetical (A-Z)"),
     AMOUNT_HIGH_LOW("Highest Amount"),
     AMOUNT_LOW_HIGH("Lowest Amount")
@@ -385,10 +386,17 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
 
+        fun parseDueDayNumber(dueDateStr: String): Int {
+            if (dueDateStr.isBlank()) return Int.MAX_VALUE
+            val numericOnly = dueDateStr.replace(Regex("[^0-9]"), "")
+            return numericOnly.toIntOrNull() ?: Int.MAX_VALUE
+        }
+
         // 4. Sorting
         when (sort) {
             ExpenseSortOrder.NEWEST -> result.sortedByDescending { it.timestamp }
             ExpenseSortOrder.OLDEST -> result.sortedBy { it.timestamp }
+            ExpenseSortOrder.EARLIEST_DUE -> result.sortedBy { parseDueDayNumber(it.dueDate) }
             ExpenseSortOrder.ALPHABETICAL -> result.sortedBy { it.description.lowercase() }
             ExpenseSortOrder.AMOUNT_HIGH_LOW -> result.sortedByDescending { it.amount }
             ExpenseSortOrder.AMOUNT_LOW_HIGH -> result.sortedBy { it.amount }
