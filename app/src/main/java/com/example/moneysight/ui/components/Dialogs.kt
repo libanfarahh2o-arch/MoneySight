@@ -1055,27 +1055,20 @@ fun DeleteConfirmationDialog(
 }
 
 /**
- * Settings & Preferences Dialog (Houses Light/Dark Theme Switcher, Stamp Reset, and Presets Manager).
+ * Settings & Preferences Hub (Grouped Cards for Theme, Monthly Stamp Reset, and Presets Manager).
  */
 @Composable
 fun SettingsDialog(
     currentThemeMode: ThemeMode,
     combinedCategories: List<ExpenseCategory>,
-    customPresets: List<String>,
     selectedPresets: Set<String>,
-    customPresetInput: String,
     autoResetStampEnabled: Boolean = false,
     autoResetStampDay: Int = 1,
     onToggleThemeClicked: () -> Unit,
     onOpenResetAllStampsClicked: () -> Unit = {},
     onToggleAutoResetStampEnabled: () -> Unit = {},
     onSetAutoResetStampDay: (Int) -> Unit = {},
-    onCustomPresetInputChanged: (String) -> Unit,
-    onAddCustomPresetClicked: () -> Unit,
-    onRemoveCustomPresetClicked: (String) -> Unit,
-    onTogglePresetSelected: (String) -> Unit,
-    onSelectAllClicked: () -> Unit,
-    onDeselectAllClicked: () -> Unit,
+    onOpenManagePresetsClicked: () -> Unit = {},
     onDismiss: () -> Unit
 ) {
     val totalAvailable = combinedCategories.sumOf { it.items.size }
@@ -1103,7 +1096,7 @@ fun SettingsDialog(
                         color = TextPrimaryOnDark
                     )
                     Text(
-                        text = "Theme mode, monthly stamp resets & presets",
+                        text = "Customize your app preferences",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondaryOnDark,
                         fontSize = 11.sp
@@ -1116,7 +1109,7 @@ fun SettingsDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // 1. Theme Mode Switcher Section
+                // 1. Theme Mode Switcher Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -1177,7 +1170,7 @@ fun SettingsDialog(
                     }
                 }
 
-                // 2. Monthly Stamp Reset & Auto-Reset Section
+                // 2. Monthly Stamp Reset & Auto-Reset Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -1298,182 +1291,58 @@ fun SettingsDialog(
                     }
                 }
 
-                // 3. Presets Manager Section Header
-                Text(
-                    text = "Preset Expenses",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimaryOnDark,
-                    fontSize = 13.sp
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Add Custom Extra Preset Input Row
-                Row(
+                // 3. Preset Expenses Manager Card (Clicking opens dedicated spacious Presets Manager!)
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = ForestSurfaceVariant)
                 ) {
-                    OutlinedTextField(
-                        value = customPresetInput,
-                        onValueChange = onCustomPresetInputChanged,
-                        modifier = Modifier.weight(1f),
-                        placeholder = {
-                            Text(
-                                "Add custom preset...",
-                                color = TextMutedOnDark.copy(alpha = 0.6f),
-                                fontSize = 13.sp
-                            )
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { onAddCustomPresetClicked() }),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = ForestSurfaceVariant,
-                            unfocusedContainerColor = ForestSurfaceVariant,
-                            focusedBorderColor = EntryTeal,
-                            unfocusedBorderColor = ForestCardBorder,
-                            focusedTextColor = TextPrimaryOnDark,
-                            unfocusedTextColor = TextPrimaryOnDark,
-                            cursorColor = EntryTeal
-                        )
-                    )
-
-                    Button(
-                        onClick = onAddCustomPresetClicked,
-                        enabled = customPresetInput.isNotBlank(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = EntryTeal,
-                            contentColor = OnEntryTeal,
-                            disabledContainerColor = ForestCardBorder,
-                            disabledContentColor = TextSecondaryOnDark
-                        )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenManagePresetsClicked() }
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Add Extra",
-                                modifier = Modifier.size(16.dp)
+                                imageVector = Icons.Default.GridView,
+                                contentDescription = "Manage Presets",
+                                tint = EntryTeal,
+                                modifier = Modifier.size(20.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Extra", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Preset Expenses Manager",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimaryOnDark,
+                                    fontSize = 13.sp
+                                )
+                                Text(
+                                    text = "$totalSelected / $totalAvailable presets active",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = EntryTeal,
+                                    fontSize = 11.sp
+                                )
+                            }
                         }
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Control Row: Select All / Deselect All / Count
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "$totalSelected / $totalAvailable selected",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = EntryTeal,
-                        fontSize = 11.sp
-                    )
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            text = "Select All",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = EntryTeal,
-                            fontSize = 11.sp,
-                            modifier = Modifier.clickable { onSelectAllClicked() }
-                        )
-
-                        Text(
-                            text = "Deselect All",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = TextSecondaryOnDark,
-                            fontSize = 11.sp,
-                            modifier = Modifier.clickable { onDeselectAllClicked() }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Scrollable List of Categories & Items
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 240.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(combinedCategories, key = { it.name }) { category ->
-                        Column {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(EntryTealContainer)
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
                             Text(
-                                text = category.name,
+                                text = "Manage",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = EntryTeal,
-                                letterSpacing = 0.8.sp
+                                fontSize = 11.sp
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                category.items.forEach { item ->
-                                    val isSelected = selectedPresets.contains(item)
-                                    val isCustom = customPresets.any { it.equals(item, ignoreCase = true) }
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(ForestSurfaceVariant)
-                                            .clickable { onTogglePresetSelected(item) }
-                                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Checkbox(
-                                                checked = isSelected,
-                                                onCheckedChange = { onTogglePresetSelected(item) },
-                                                colors = CheckboxDefaults.colors(
-                                                    checkedColor = EntryTeal,
-                                                    uncheckedColor = TextSecondaryOnDark,
-                                                    checkmarkColor = OnEntryTeal
-                                                )
-                                            )
-                                            Text(
-                                                text = item,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = if (isSelected) TextPrimaryOnDark else TextMutedOnDark,
-                                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
-                                                fontSize = 13.sp
-                                            )
-                                        }
-
-                                        if (isCustom) {
-                                            IconButton(
-                                                onClick = { onRemoveCustomPresetClicked(item) },
-                                                modifier = Modifier.size(28.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.DeleteOutline,
-                                                    contentDescription = "Delete Extra Preset",
-                                                    tint = WarningRed,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                 }
@@ -1488,7 +1357,7 @@ fun SettingsDialog(
                     contentColor = OnEntryTeal
                 )
             ) {
-                Text("Done", fontWeight = FontWeight.Bold)
+                Text("Close", fontWeight = FontWeight.Bold)
             }
         }
     )
@@ -1643,7 +1512,7 @@ fun ManagePresetsDialog(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 340.dp),
+                        .heightIn(max = 440.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(combinedCategories, key = { it.name }) { category ->

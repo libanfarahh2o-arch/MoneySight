@@ -793,26 +793,19 @@ fun MoneySightScreen(
         )
     }
 
-    // Settings Dialog (Houses Light/Dark Theme Switcher, Monthly Stamp Reset & Presets Manager)
+    // Settings & Preferences Hub Dialog
     if (showSettingsDialog) {
         SettingsDialog(
             currentThemeMode = themeMode,
             combinedCategories = combinedCategories,
-            customPresets = customPresets,
             selectedPresets = selectedPresets,
-            customPresetInput = customPresetInput,
             autoResetStampEnabled = autoResetStampEnabled,
             autoResetStampDay = autoResetStampDay,
             onToggleThemeClicked = { viewModel.toggleThemeMode() },
             onOpenResetAllStampsClicked = { viewModel.openResetAllStampsDialog() },
             onToggleAutoResetStampEnabled = { viewModel.toggleAutoResetStampEnabled() },
             onSetAutoResetStampDay = { viewModel.setAutoResetStampDay(it) },
-            onCustomPresetInputChanged = { viewModel.onCustomPresetInputChanged(it) },
-            onAddCustomPresetClicked = { viewModel.onAddCustomPresetSubmitted() },
-            onRemoveCustomPresetClicked = { viewModel.onRemoveCustomPresetClicked(it) },
-            onTogglePresetSelected = { viewModel.onTogglePresetSelected(it) },
-            onSelectAllClicked = { viewModel.onSelectAllPresets() },
-            onDeselectAllClicked = { viewModel.onDeselectAllPresets() },
+            onOpenManagePresetsClicked = { viewModel.openManagePresetsDialog() },
             onDismiss = { viewModel.dismissSettingsDialog() }
         )
     }
