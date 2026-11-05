@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -626,33 +625,26 @@ fun MoneySightScreen(
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    // 2. Stamp Pill Button
-                    ExtendedFloatingActionButton(
+                    // 2. Circular Stamp Button (Matching circular stamp look; STAMP when off, ON when clicked)
+                    FloatingActionButton(
                         onClick = { viewModel.toggleStampMode() },
                         containerColor = if (isStampModeActive) IncomeGreen else ForestSurfaceVariant,
                         contentColor = if (isStampModeActive) TextPrimaryOnDark else IncomeGreen,
                         shape = CircleShape,
-                        modifier = Modifier.height(48.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(IncomeGreenContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Verified,
-                                contentDescription = "Stamp Mode",
-                                tint = IncomeGreen,
-                                modifier = Modifier.size(16.dp)
+                        modifier = Modifier
+                            .size(48.dp)
+                            .border(
+                                1.5.dp,
+                                if (isStampModeActive) IncomeGreen else IncomeGreen.copy(alpha = 0.5f),
+                                CircleShape
                             )
-                        }
-                        Spacer(modifier = Modifier.width(6.dp))
+                    ) {
                         Text(
-                            text = if (isStampModeActive) "Stamp ON" else "Stamp",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
+                            text = if (isStampModeActive) "ON" else "STAMP",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = if (isStampModeActive) 13.sp else 10.sp,
+                            letterSpacing = 0.5.sp,
                             color = if (isStampModeActive) TextPrimaryOnDark else IncomeGreen
                         )
                     }
