@@ -83,7 +83,7 @@ fun ExpenseItem(
         ) {
             // Left: Expense Icon + Description + PAID Stamp Badge + Due Date Status + Note Indicator
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 modifier = Modifier.weight(1f)
             ) {
                 Box(
