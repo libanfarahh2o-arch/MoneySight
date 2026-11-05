@@ -3,8 +3,10 @@ package com.moneysight.app.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.moneysight.app.model.Expense
@@ -30,6 +32,9 @@ class MoneySightRepository(private val context: Context) {
         val CUSTOM_PRESETS_JSON = stringPreferencesKey("custom_presets_json")
         val SELECTED_PRESETS_JSON = stringPreferencesKey("selected_presets_json")
         val MANUAL_CHECKLIST_INCOME = stringPreferencesKey("manual_checklist_income")
+        val AUTO_RESET_STAMP_ENABLED = booleanPreferencesKey("auto_reset_stamp_enabled")
+        val AUTO_RESET_STAMP_DAY = intPreferencesKey("auto_reset_stamp_day")
+        val LAST_STAMP_RESET_MONTH = stringPreferencesKey("last_stamp_reset_month")
     }
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -530,6 +535,65 @@ class MoneySightRepository(private val context: Context) {
                 if (it.id == expenseId) it.copy(isStamped = !it.isStamped) else it
             }
             preferences[PreferencesKeys.EXPENSES_JSON] = json.encodeToString(updatedList)
+        }
+    }
+
+    val autoResetStampEnabledFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.AUTO_RESET_STAMP_ENABLED] ?: false
+    }
+
+    val autoResetStampDayFlow: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.AUTO_RESET_STAMP_DAY] ?: 1
+    }
+
+    suspend fun setAutoResetStampEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AUTO_RESET_STAMP_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setAutoResetStampDay(day: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AUTO_RESET_STAMP_DAY] = day.coerceIn(1, 31)
+        }
+    }
+
+    suspend fun resetAllStampsToUnstamped() {
+        context.dataStore.edit { preferences ->
+            val currentJson = preferences[PreferencesKeys.EXPENSES_JSON] ?: "[]"
+            val currentList = try {
+                json.decodeFromString<List<Expense>>(currentJson)
+            } catch (e: Exception) {
+                emptyList()
+            }
+            val updatedList = currentList.map { it.copy(isStamped = false) }
+            preferences[PreferencesKeys.EXPENSES_JSON] = json.encodeToString(updatedList)
+        }
+    }
+
+    suspend fun checkAndPerformAutoStampReset() {
+        val calendar = java.util.Calendar.getInstance()
+        val year = calendar.get(java.util.Calendar.YEAR)
+        val month = calendar.get(java.util.Calendar.MONTH) + 1
+        val dayOfMonth = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+        val currentMonthKey = "$year-${String.format(java.util.Locale.UK, "%02d", month)}"
+
+        context.dataStore.edit { preferences ->
+            val enabled = preferences[PreferencesKeys.AUTO_RESET_STAMP_ENABLED] ?: false
+            val resetDay = preferences[PreferencesKeys.AUTO_RESET_STAMP_DAY] ?: 1
+            val lastResetMonth = preferences[PreferencesKeys.LAST_STAMP_RESET_MONTH] ?: ""
+
+            if (enabled && dayOfMonth >= resetDay && lastResetMonth != currentMonthKey) {
+                val currentJson = preferences[PreferencesKeys.EXPENSES_JSON] ?: "[]"
+                val currentList = try {
+                    json.decodeFromString<List<Expense>>(currentJson)
+                } catch (e: Exception) {
+                    emptyList()
+                }
+                val updatedList = currentList.map { it.copy(isStamped = false) }
+                preferences[PreferencesKeys.EXPENSES_JSON] = json.encodeToString(updatedList)
+                preferences[PreferencesKeys.LAST_STAMP_RESET_MONTH] = currentMonthKey
+            }
         }
     }
 }

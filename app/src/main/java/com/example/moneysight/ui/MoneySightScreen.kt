@@ -72,6 +72,7 @@ import com.moneysight.app.ui.components.IncomeSourcesDialog
 import com.moneysight.app.ui.components.ManageGroupsDialog
 import com.moneysight.app.ui.components.ManagePresetsDialog
 import com.moneysight.app.ui.components.OverbudgetWarningDialog
+import com.moneysight.app.ui.components.ResetAllStampsConfirmationDialog
 import com.moneysight.app.ui.components.SelectBillToEditDialog
 import com.moneysight.app.ui.components.SettingsDialog
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
@@ -160,6 +161,9 @@ fun MoneySightScreen(
     val selectedPresets by viewModel.selectedPresets.collectAsStateWithLifecycle()
     val showManagePresetsDialog by viewModel.showManagePresetsDialog.collectAsStateWithLifecycle()
     val showSettingsDialog by viewModel.showSettingsDialog.collectAsStateWithLifecycle()
+    val autoResetStampEnabled by viewModel.autoResetStampEnabled.collectAsStateWithLifecycle()
+    val autoResetStampDay by viewModel.autoResetStampDay.collectAsStateWithLifecycle()
+    val showResetAllStampsDialog by viewModel.showResetAllStampsDialog.collectAsStateWithLifecycle()
     val customPresetInput by viewModel.customPresetInput.collectAsStateWithLifecycle()
 
     // Stamp Mode State for Main Screen
@@ -789,7 +793,7 @@ fun MoneySightScreen(
         )
     }
 
-    // Settings Dialog (Houses Light/Dark Theme Switcher & Presets Manager)
+    // Settings Dialog (Houses Light/Dark Theme Switcher, Monthly Stamp Reset & Presets Manager)
     if (showSettingsDialog) {
         SettingsDialog(
             currentThemeMode = themeMode,
@@ -797,7 +801,12 @@ fun MoneySightScreen(
             customPresets = customPresets,
             selectedPresets = selectedPresets,
             customPresetInput = customPresetInput,
+            autoResetStampEnabled = autoResetStampEnabled,
+            autoResetStampDay = autoResetStampDay,
             onToggleThemeClicked = { viewModel.toggleThemeMode() },
+            onOpenResetAllStampsClicked = { viewModel.openResetAllStampsDialog() },
+            onToggleAutoResetStampEnabled = { viewModel.toggleAutoResetStampEnabled() },
+            onSetAutoResetStampDay = { viewModel.setAutoResetStampDay(it) },
             onCustomPresetInputChanged = { viewModel.onCustomPresetInputChanged(it) },
             onAddCustomPresetClicked = { viewModel.onAddCustomPresetSubmitted() },
             onRemoveCustomPresetClicked = { viewModel.onRemoveCustomPresetClicked(it) },
@@ -805,6 +814,14 @@ fun MoneySightScreen(
             onSelectAllClicked = { viewModel.onSelectAllPresets() },
             onDeselectAllClicked = { viewModel.onDeselectAllPresets() },
             onDismiss = { viewModel.dismissSettingsDialog() }
+        )
+    }
+
+    // Reset All Stamps Confirmation Dialog
+    if (showResetAllStampsDialog) {
+        ResetAllStampsConfirmationDialog(
+            onConfirm = { viewModel.confirmResetAllStamps() },
+            onDismiss = { viewModel.dismissResetAllStampsDialog() }
         )
     }
 

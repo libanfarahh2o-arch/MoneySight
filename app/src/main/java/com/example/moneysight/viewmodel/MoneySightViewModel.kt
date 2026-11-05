@@ -269,11 +269,26 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = 0.0
     )
 
+    val autoResetStampEnabled: StateFlow<Boolean> = repository.autoResetStampEnabledFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false
+    )
+
+    val autoResetStampDay: StateFlow<Int> = repository.autoResetStampDayFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 1
+    )
+
     // Manual Income entered on Checklist page
     private val _manualChecklistIncomeInput = MutableStateFlow("")
     val manualChecklistIncomeInput: StateFlow<String> = _manualChecklistIncomeInput.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            repository.checkAndPerformAutoStampReset()
+        }
         viewModelScope.launch {
             repository.manualChecklistIncomeFlow.collect { saved ->
                 if (_manualChecklistIncomeInput.value.isEmpty() && saved.isNotEmpty()) {
@@ -567,6 +582,9 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     private val _showSettingsDialog = MutableStateFlow(false)
     val showSettingsDialog: StateFlow<Boolean> = _showSettingsDialog.asStateFlow()
 
+    private val _showResetAllStampsDialog = MutableStateFlow(false)
+    val showResetAllStampsDialog: StateFlow<Boolean> = _showResetAllStampsDialog.asStateFlow()
+
     fun openSettingsDialog() {
         _customPresetInput.value = ""
         _showSettingsDialog.value = true
@@ -574,6 +592,34 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
 
     fun dismissSettingsDialog() {
         _showSettingsDialog.value = false
+    }
+
+    fun openResetAllStampsDialog() {
+        _showResetAllStampsDialog.value = true
+    }
+
+    fun dismissResetAllStampsDialog() {
+        _showResetAllStampsDialog.value = false
+    }
+
+    fun confirmResetAllStamps() {
+        viewModelScope.launch {
+            repository.resetAllStampsToUnstamped()
+            _showResetAllStampsDialog.value = false
+        }
+    }
+
+    fun toggleAutoResetStampEnabled() {
+        val current = autoResetStampEnabled.value
+        viewModelScope.launch {
+            repository.setAutoResetStampEnabled(!current)
+        }
+    }
+
+    fun setAutoResetStampDay(day: Int) {
+        viewModelScope.launch {
+            repository.setAutoResetStampDay(day)
+        }
     }
 
     fun openManagePresetsDialog() {

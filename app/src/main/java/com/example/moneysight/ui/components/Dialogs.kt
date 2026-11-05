@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsBrightness
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.AlertDialog
@@ -46,9 +48,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import com.moneysight.app.ui.theme.EntryTeal
 import com.moneysight.app.ui.theme.EntryTealContainer
+import com.moneysight.app.ui.theme.IncomeGreen
 import com.moneysight.app.ui.theme.OnEntryTeal
 import com.moneysight.app.ui.theme.ThemeMode
 import com.moneysight.app.util.ExpenseCategory
@@ -1050,7 +1055,7 @@ fun DeleteConfirmationDialog(
 }
 
 /**
- * Settings & Preferences Dialog (Houses Light/Dark Theme Switcher and Presets Manager).
+ * Settings & Preferences Dialog (Houses Light/Dark Theme Switcher, Stamp Reset, and Presets Manager).
  */
 @Composable
 fun SettingsDialog(
@@ -1059,7 +1064,12 @@ fun SettingsDialog(
     customPresets: List<String>,
     selectedPresets: Set<String>,
     customPresetInput: String,
+    autoResetStampEnabled: Boolean = false,
+    autoResetStampDay: Int = 1,
     onToggleThemeClicked: () -> Unit,
+    onOpenResetAllStampsClicked: () -> Unit = {},
+    onToggleAutoResetStampEnabled: () -> Unit = {},
+    onSetAutoResetStampDay: (Int) -> Unit = {},
     onCustomPresetInputChanged: (String) -> Unit,
     onAddCustomPresetClicked: () -> Unit,
     onRemoveCustomPresetClicked: (String) -> Unit,
@@ -1087,13 +1097,13 @@ fun SettingsDialog(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "Settings & Presets",
+                        text = "Settings & Preferences",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimaryOnDark
                     )
                     Text(
-                        text = "Theme mode & expense category presets",
+                        text = "Theme mode, monthly stamp resets & presets",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondaryOnDark,
                         fontSize = 11.sp
@@ -1102,7 +1112,10 @@ fun SettingsDialog(
             }
         },
         text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 // 1. Theme Mode Switcher Section
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -1164,9 +1177,128 @@ fun SettingsDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                // 2. Monthly Stamp Reset & Auto-Reset Section
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = ForestSurfaceVariant)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Monthly Stamp Reset",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimaryOnDark,
+                                    fontSize = 13.sp
+                                )
+                                Text(
+                                    text = "Clear main page stamps for a new month",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondaryOnDark,
+                                    fontSize = 11.sp
+                                )
+                            }
 
-                // 2. Presets Manager Section Header
+                            Button(
+                                onClick = onOpenResetAllStampsClicked,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = IncomeGreen,
+                                    contentColor = TextPrimaryOnDark
+                                ),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Text("Reset Now", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            }
+                        }
+
+                        // Auto-Reset Toggle Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Auto-Reset Monthly at 00:00",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimaryOnDark,
+                                    fontSize = 12.sp
+                                )
+                                Text(
+                                    text = if (autoResetStampEnabled) "Automatically clears stamps on Day $autoResetStampDay at 00:00" else "Off",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (autoResetStampEnabled) IncomeGreen else TextSecondaryOnDark,
+                                    fontSize = 11.sp
+                                )
+                            }
+
+                            Switch(
+                                checked = autoResetStampEnabled,
+                                onCheckedChange = { onToggleAutoResetStampEnabled() },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = TextPrimaryOnDark,
+                                    checkedTrackColor = IncomeGreen,
+                                    uncheckedThumbColor = TextSecondaryOnDark,
+                                    uncheckedTrackColor = ForestCardBorder
+                                )
+                            )
+                        }
+
+                        // Day of Month Selector when Auto-Reset Enabled
+                        if (autoResetStampEnabled) {
+                            Column {
+                                Text(
+                                    text = "Auto-Reset Day of Month:",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = TextSecondaryOnDark,
+                                    fontSize = 10.sp
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    listOf(1, 15, 28).forEach { day ->
+                                        val isSelected = autoResetStampDay == day
+                                        val dayLabel = when (day) {
+                                            1 -> "1st"
+                                            15 -> "15th"
+                                            else -> "28th"
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(14.dp))
+                                                .background(if (isSelected) IncomeGreen else ForestSurface)
+                                                .clickable { onSetAutoResetStampDay(day) }
+                                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = dayLabel,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isSelected) TextPrimaryOnDark else TextSecondaryOnDark,
+                                                fontSize = 11.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 3. Presets Manager Section Header
                 Text(
                     text = "Preset Expenses",
                     style = MaterialTheme.typography.titleMedium,
@@ -1694,6 +1826,66 @@ fun SelectBillToEditDialog(
                 )
             ) {
                 Text("Close", fontWeight = FontWeight.Bold)
+            }
+        }
+    )
+}
+
+/**
+ * Confirmation Dialog for resetting all main page stamps to unstamped.
+ */
+@Composable
+fun ResetAllStampsConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ForestSurface,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Verified,
+                    contentDescription = null,
+                    tint = IncomeGreen,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Reset All Stamps?",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimaryOnDark
+                )
+            }
+        },
+        text = {
+            Text(
+                text = "Are you sure you want to reset all main page stamps? This will unmark all paid stamps so you can start a fresh new month.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondaryOnDark
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = IncomeGreen,
+                    contentColor = TextPrimaryOnDark
+                )
+            ) {
+                Text("Reset All Stamps", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(10.dp),
+                border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
+            ) {
+                Text("Cancel", color = TextSecondaryOnDark)
             }
         }
     )
