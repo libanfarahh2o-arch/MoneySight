@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,7 +62,7 @@ fun ExpenseItem(
 ) {
     val cardBorder = when {
         isStampModeActive -> BorderStroke(1.5.dp, IncomeGreen)
-        expense.isStamped -> BorderStroke(1.dp, IncomeGreen.copy(alpha = 0.5f))
+        expense.isStamped -> BorderStroke(1.5.dp, IncomeGreen.copy(alpha = 0.6f))
         else -> BorderStroke(1.dp, ExpenseBorder)
     }
 
@@ -75,86 +76,116 @@ fun ExpenseItem(
         colors = CardDefaults.cardColors(containerColor = ExpenseSurface),
         border = cardBorder
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Left: Expense Icon + Description + PAID Stamp Badge + Due Date Status + Note Indicator
+            // Main Card Row Content
             Row(
-                verticalAlignment = Alignment.Top,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Box(
-                    modifier = Modifier
-                        .offset(y = (-1).dp)
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(if (expense.isStamped) IncomeGreenContainer else ExpenseRoseContainer),
-                    contentAlignment = Alignment.Center
+                // Left: Expense Icon + Description + Note Indicator
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(
-                        imageVector = if (expense.isStamped) Icons.Default.Verified else Icons.Default.Receipt,
-                        contentDescription = null,
-                        tint = if (expense.isStamped) IncomeGreen else ExpenseRose,
-                        modifier = Modifier.size(13.dp)
-                    )
-                }
+                    Box(
+                        modifier = Modifier
+                            .offset(y = (-1).dp)
+                            .size(22.dp)
+                            .clip(CircleShape)
+                            .background(if (expense.isStamped) IncomeGreenContainer else ExpenseRoseContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (expense.isStamped) Icons.Default.Verified else Icons.Default.Receipt,
+                            contentDescription = null,
+                            tint = if (expense.isStamped) IncomeGreen else ExpenseRose,
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
 
-                Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
 
-                Column {
-                    Text(
-                        text = expense.description,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimaryOnDark
-                    )
+                    Column {
+                        Text(
+                            text = expense.description,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimaryOnDark
+                        )
 
-                    if (expense.isStamped) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(IncomeGreenContainer)
-                                .border(1.dp, IncomeGreen.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
+                        if (expense.notes.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(3.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = Icons.Default.Verified,
-                                    contentDescription = "Paid Stamp",
-                                    tint = IncomeGreen,
-                                    modifier = Modifier.size(11.dp)
+                                    imageVector = Icons.AutoMirrored.Filled.StickyNote2,
+                                    contentDescription = "Note",
+                                    tint = EntryTeal,
+                                    modifier = Modifier.size(12.dp)
                                 )
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
-                                    text = "PAID STAMP",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = IncomeGreen,
-                                    fontSize = 9.sp
+                                    text = expense.notes,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondaryOnDark,
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
                     }
+                }
 
-                    if (expense.notes.isNotBlank()) {
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Right Side: Amount (Top Right) + Due Date Indicator Underneath
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = "-${CurrencyUtils.formatPounds(expense.amount)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (expense.isStamped) IncomeGreen else ExpenseRose
+                    )
+
+                    if (!expense.isStamped && expense.dueDate.isNotBlank()) {
                         Spacer(modifier = Modifier.height(3.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.StickyNote2,
-                                contentDescription = "Note",
-                                tint = EntryTeal,
-                                modifier = Modifier.size(12.dp)
+                        val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
+                        val (statusText, textColor) = when (dueStatus) {
+                            is DueDateStatus.Today -> "Due Today" to WarningAmber
+                            is DueDateStatus.DaysRemaining -> {
+                                val days = dueStatus.days
+                                val label = if (days == 1) "1 day left" else "$days days left"
+                                label to (if (days <= 3) WarningAmber else IncomeGreen)
+                            }
+                            is DueDateStatus.Overdue -> {
+                                val days = dueStatus.days
+                                val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
+                                label to WarningRed
+                            }
+                            is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            CalendarDayIcon(
+                                dayText = expense.dueDate,
+                                tint = textColor
                             )
-                            Spacer(modifier = Modifier.width(3.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = expense.notes,
+                                text = statusText,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondaryOnDark,
+                                fontWeight = FontWeight.Medium,
+                                color = textColor,
                                 fontSize = 11.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -164,56 +195,13 @@ fun ExpenseItem(
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Right Side: Amount (Top Right) + Due Date Indicator Underneath
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "-${CurrencyUtils.formatPounds(expense.amount)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (expense.isStamped) IncomeGreen else ExpenseRose
-                )
-
-                if (!expense.isStamped && expense.dueDate.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(3.dp))
-                    val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
-                    val (statusText, textColor) = when (dueStatus) {
-                        is DueDateStatus.Today -> "Due Today" to WarningAmber
-                        is DueDateStatus.DaysRemaining -> {
-                            val days = dueStatus.days
-                            val label = if (days == 1) "1 day left" else "$days days left"
-                            label to (if (days <= 3) WarningAmber else IncomeGreen)
-                        }
-                        is DueDateStatus.Overdue -> {
-                            val days = dueStatus.days
-                            val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
-                            label to WarningRed
-                        }
-                        is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        CalendarDayIcon(
-                            dayText = expense.dueDate,
-                            tint = textColor
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = statusText,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Medium,
-                            color = textColor,
-                            fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+            // Realistic Circular Rubber Paid Stamp Centered Right in the Middle of the Rectangle!
+            if (expense.isStamped) {
+                Box(
+                    modifier = Modifier.matchParentSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    RealisticCirclePaidStamp()
                 }
             }
         }
@@ -262,6 +250,63 @@ fun CalendarDayIcon(
                     color = tint,
                     fontSize = 8.sp,
                     maxLines = 1
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Realistic Circular Rubber Stamp for Paid Bills centered in the middle of the bill card.
+ */
+@Composable
+fun RealisticCirclePaidStamp(
+    modifier: Modifier = Modifier
+) {
+    val stampColor = IncomeGreen.copy(alpha = 0.88f)
+
+    Box(
+        modifier = modifier
+            .rotate(-10f)
+            .size(62.dp)
+            .clip(CircleShape)
+            .border(2.2.dp, stampColor, CircleShape)
+            .background(IncomeGreenContainer.copy(alpha = 0.45f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(3.dp)
+                .border(1.dp, stampColor.copy(alpha = 0.7f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "★ ★ ★",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 7.sp,
+                    color = stampColor,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Text(
+                    text = "PAID",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = stampColor,
+                    fontSize = 14.sp,
+                    letterSpacing = 1.2.sp
+                )
+                Text(
+                    text = "STAMPED",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 6.5.sp,
+                    color = stampColor,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.8.sp
                 )
             }
         }
