@@ -804,7 +804,7 @@ fun EditExpenseDialog(
         },
         title = {
             Text(
-                text = "Edit / Delete Expense",
+                text = "Edit Expense",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimaryOnDark

@@ -198,7 +198,7 @@ fun ExpenseFilterBar(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Edit / Delete",
+                        text = "Edit",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MintGreenPrimary,
