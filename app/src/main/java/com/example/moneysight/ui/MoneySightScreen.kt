@@ -27,8 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -73,6 +73,7 @@ import com.moneysight.app.ui.components.ManageGroupsDialog
 import com.moneysight.app.ui.components.ManagePresetsDialog
 import com.moneysight.app.ui.components.OverbudgetWarningDialog
 import com.moneysight.app.ui.components.SelectBillToEditDialog
+import com.moneysight.app.ui.components.SettingsDialog
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
 import com.moneysight.app.ui.theme.ChecklistPurpleLight
 import com.moneysight.app.ui.theme.ChecklistPurplePrimary
@@ -150,12 +151,13 @@ fun MoneySightScreen(
     val pendingOverbudgetEdit by viewModel.pendingOverbudgetEdit.collectAsStateWithLifecycle()
     val expenseToDelete by viewModel.expenseToDelete.collectAsStateWithLifecycle()
 
-    // Presets Management States
+    // Presets & Settings Management States
     val activeCategories by viewModel.activeCategories.collectAsStateWithLifecycle()
     val combinedCategories by viewModel.combinedCategories.collectAsStateWithLifecycle()
     val customPresets by viewModel.customPresets.collectAsStateWithLifecycle()
     val selectedPresets by viewModel.selectedPresets.collectAsStateWithLifecycle()
     val showManagePresetsDialog by viewModel.showManagePresetsDialog.collectAsStateWithLifecycle()
+    val showSettingsDialog by viewModel.showSettingsDialog.collectAsStateWithLifecycle()
     val customPresetInput by viewModel.customPresetInput.collectAsStateWithLifecycle()
 
     // Stamp Mode State for Main Screen
@@ -233,17 +235,15 @@ fun MoneySightScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. GROUP 1: Balance Header & Income Section (Includes Theme Switch Button)
+            // 1. GROUP 1: Balance Header & Income Section
             item(key = "balance_header") {
                 BalanceHeader(
                     remainingBalance = remainingBalance,
                     totalIncome = totalIncome,
                     incomeSourcesCount = incomeSources.size,
                     isIncomeExpanded = isIncomeExpanded,
-                    currentThemeMode = themeMode,
                     onToggleIncomeExpand = { isIncomeExpanded = !isIncomeExpanded },
-                    onManageIncomeClicked = { viewModel.openIncomeDialog() },
-                    onToggleThemeClicked = { viewModel.toggleThemeMode() }
+                    onManageIncomeClicked = { viewModel.openIncomeDialog() }
                 )
             }
 
@@ -600,17 +600,17 @@ fun MoneySightScreen(
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 1. Circular Presets Button
+                    // 1. Circular Settings Button (Houses Light/Dark Theme Switcher & Category Presets)
                     FloatingActionButton(
-                        onClick = { viewModel.openManagePresetsDialog() },
+                        onClick = { viewModel.openSettingsDialog() },
                         containerColor = EntryTealContainer,
                         contentColor = EntryTeal,
                         shape = CircleShape,
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.GridView,
-                            contentDescription = "Presets",
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
                             tint = EntryTeal,
                             modifier = Modifier.size(22.dp)
                         )
@@ -780,6 +780,25 @@ fun MoneySightScreen(
             onSelectAllClicked = { viewModel.onSelectAllPresets() },
             onDeselectAllClicked = { viewModel.onDeselectAllPresets() },
             onDismiss = { viewModel.dismissManagePresetsDialog() }
+        )
+    }
+
+    // Settings Dialog (Houses Light/Dark Theme Switcher & Presets Manager)
+    if (showSettingsDialog) {
+        SettingsDialog(
+            currentThemeMode = themeMode,
+            combinedCategories = combinedCategories,
+            customPresets = customPresets,
+            selectedPresets = selectedPresets,
+            customPresetInput = customPresetInput,
+            onToggleThemeClicked = { viewModel.toggleThemeMode() },
+            onCustomPresetInputChanged = { viewModel.onCustomPresetInputChanged(it) },
+            onAddCustomPresetClicked = { viewModel.onAddCustomPresetSubmitted() },
+            onRemoveCustomPresetClicked = { viewModel.onRemoveCustomPresetClicked(it) },
+            onTogglePresetSelected = { viewModel.onTogglePresetSelected(it) },
+            onSelectAllClicked = { viewModel.onSelectAllPresets() },
+            onDeselectAllClicked = { viewModel.onDeselectAllPresets() },
+            onDismiss = { viewModel.dismissSettingsDialog() }
         )
     }
 

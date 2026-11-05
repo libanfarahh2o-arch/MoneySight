@@ -549,7 +549,19 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _groupToDelete.value = null
     }
 
-    // Preset Management Actions
+    // Settings & Preset Management Actions
+    private val _showSettingsDialog = MutableStateFlow(false)
+    val showSettingsDialog: StateFlow<Boolean> = _showSettingsDialog.asStateFlow()
+
+    fun openSettingsDialog() {
+        _customPresetInput.value = ""
+        _showSettingsDialog.value = true
+    }
+
+    fun dismissSettingsDialog() {
+        _showSettingsDialog.value = false
+    }
+
     fun openManagePresetsDialog() {
         _customPresetInput.value = ""
         _showManagePresetsDialog.value = true

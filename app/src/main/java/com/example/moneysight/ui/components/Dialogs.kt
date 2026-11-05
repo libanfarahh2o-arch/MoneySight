@@ -24,11 +24,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,8 +48,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import com.moneysight.app.ui.theme.EntryTeal
-import com.moneysight.app.ui.theme.MintGreenPrimary
+import com.moneysight.app.ui.theme.EntryTealContainer
 import com.moneysight.app.ui.theme.OnEntryTeal
+import com.moneysight.app.ui.theme.ThemeMode
 import com.moneysight.app.util.ExpenseCategory
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -1016,6 +1021,319 @@ fun DeleteConfirmationDialog(
                 border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
             ) {
                 Text("Cancel", color = TextSecondaryOnDark)
+            }
+        }
+    )
+}
+
+/**
+ * Settings & Preferences Dialog (Houses Light/Dark Theme Switcher and Presets Manager).
+ */
+@Composable
+fun SettingsDialog(
+    currentThemeMode: ThemeMode,
+    combinedCategories: List<ExpenseCategory>,
+    customPresets: List<String>,
+    selectedPresets: Set<String>,
+    customPresetInput: String,
+    onToggleThemeClicked: () -> Unit,
+    onCustomPresetInputChanged: (String) -> Unit,
+    onAddCustomPresetClicked: () -> Unit,
+    onRemoveCustomPresetClicked: (String) -> Unit,
+    onTogglePresetSelected: (String) -> Unit,
+    onSelectAllClicked: () -> Unit,
+    onDeselectAllClicked: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val totalAvailable = combinedCategories.sumOf { it.items.size }
+    val totalSelected = selectedPresets.size
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ForestSurface,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    tint = EntryTeal,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "Settings & Presets",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimaryOnDark
+                    )
+                    Text(
+                        text = "Theme mode & expense category presets",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondaryOnDark,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // 1. Theme Mode Switcher Section
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = ForestSurfaceVariant)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onToggleThemeClicked() }
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            val (themeIcon, themeLabel) = when (currentThemeMode) {
+                                ThemeMode.DARK -> Icons.Default.DarkMode to "Dark Mode"
+                                ThemeMode.LIGHT -> Icons.Default.WbSunny to "Light Mode"
+                                ThemeMode.SYSTEM -> Icons.Default.SettingsBrightness to if (isSystemDark) "Auto (Dark)" else "Auto (Light)"
+                            }
+                            Icon(
+                                imageVector = themeIcon,
+                                contentDescription = "Theme Mode",
+                                tint = MintGreenPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "Theme Mode",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimaryOnDark,
+                                    fontSize = 13.sp
+                                )
+                                Text(
+                                    text = themeLabel,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MintGreenPrimary,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(EntryTealContainer)
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "Switch Theme",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = EntryTeal,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 2. Presets Manager Section Header
+                Text(
+                    text = "Preset Expenses",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimaryOnDark,
+                    fontSize = 13.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Add Custom Extra Preset Input Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = customPresetInput,
+                        onValueChange = onCustomPresetInputChanged,
+                        modifier = Modifier.weight(1f),
+                        placeholder = {
+                            Text(
+                                "Add custom preset...",
+                                color = TextMutedOnDark.copy(alpha = 0.6f),
+                                fontSize = 13.sp
+                            )
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { onAddCustomPresetClicked() }),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = ForestSurfaceVariant,
+                            unfocusedContainerColor = ForestSurfaceVariant,
+                            focusedBorderColor = EntryTeal,
+                            unfocusedBorderColor = ForestCardBorder,
+                            focusedTextColor = TextPrimaryOnDark,
+                            unfocusedTextColor = TextPrimaryOnDark,
+                            cursorColor = EntryTeal
+                        )
+                    )
+
+                    Button(
+                        onClick = onAddCustomPresetClicked,
+                        enabled = customPresetInput.isNotBlank(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = EntryTeal,
+                            contentColor = OnEntryTeal,
+                            disabledContainerColor = ForestCardBorder,
+                            disabledContentColor = TextSecondaryOnDark
+                        )
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Add Extra",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Extra", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Control Row: Select All / Deselect All / Count
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "$totalSelected / $totalAvailable selected",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = EntryTeal,
+                        fontSize = 11.sp
+                    )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = "Select All",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = EntryTeal,
+                            fontSize = 11.sp,
+                            modifier = Modifier.clickable { onSelectAllClicked() }
+                        )
+
+                        Text(
+                            text = "Deselect All",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondaryOnDark,
+                            fontSize = 11.sp,
+                            modifier = Modifier.clickable { onDeselectAllClicked() }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Scrollable List of Categories & Items
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 240.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(combinedCategories, key = { it.name }) { category ->
+                        Column {
+                            Text(
+                                text = category.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = EntryTeal,
+                                letterSpacing = 0.8.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                category.items.forEach { item ->
+                                    val isSelected = selectedPresets.contains(item)
+                                    val isCustom = customPresets.any { it.equals(item, ignoreCase = true) }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(ForestSurfaceVariant)
+                                            .clickable { onTogglePresetSelected(item) }
+                                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Checkbox(
+                                                checked = isSelected,
+                                                onCheckedChange = { onTogglePresetSelected(item) },
+                                                colors = CheckboxDefaults.colors(
+                                                    checkedColor = EntryTeal,
+                                                    uncheckedColor = TextSecondaryOnDark,
+                                                    checkmarkColor = OnEntryTeal
+                                                )
+                                            )
+                                            Text(
+                                                text = item,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = if (isSelected) TextPrimaryOnDark else TextMutedOnDark,
+                                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+                                                fontSize = 13.sp
+                                            )
+                                        }
+
+                                        if (isCustom) {
+                                            IconButton(
+                                                onClick = { onRemoveCustomPresetClicked(item) },
+                                                modifier = Modifier.size(28.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.DeleteOutline,
+                                                    contentDescription = "Delete Extra Preset",
+                                                    tint = WarningRed,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = EntryTeal,
+                    contentColor = OnEntryTeal
+                )
+            ) {
+                Text("Done", fontWeight = FontWeight.Bold)
             }
         }
     )
