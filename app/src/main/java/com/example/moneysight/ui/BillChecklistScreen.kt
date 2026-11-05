@@ -36,7 +36,6 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -77,6 +76,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.moneysight.app.model.Expense
 import com.moneysight.app.ui.theme.ChecklistBorder
+import com.moneysight.app.ui.components.RealisticCirclePaidStamp
 import com.moneysight.app.ui.theme.ChecklistDarkBackground
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
 import com.moneysight.app.ui.theme.ChecklistPurpleLight
@@ -891,94 +891,80 @@ fun BillChecklistItem(
         colors = CardDefaults.cardColors(containerColor = cardBg),
         border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(cardBorder))
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Interactive Checkbox / Tick Icon
-                Checkbox(
-                    checked = expense.isPaid,
-                    onCheckedChange = { onTogglePaid() },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = ChecklistPurplePrimary,
-                        uncheckedColor = ExpenseRose,
-                        checkmarkColor = ChecklistDarkBackground
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Interactive Checkbox / Tick Icon
+                    Checkbox(
+                        checked = expense.isPaid,
+                        onCheckedChange = { onTogglePaid() },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = ChecklistPurplePrimary,
+                            uncheckedColor = ExpenseRose,
+                            checkmarkColor = ChecklistDarkBackground
+                        )
                     )
-                )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column {
+                        Text(
+                            text = expense.description,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimaryOnDark
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Column {
+                // Right: Paid Status Tag & Amount
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
                     Text(
-                        text = expense.description,
+                        text = "-${CurrencyUtils.formatPounds(expense.amount)}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimaryOnDark
+                        color = if (expense.isPaid) ChecklistPurplePrimary else ExpenseRose
                     )
-
-                    if (expense.isStamped) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(IncomeGreenContainer)
-                                .border(1.dp, IncomeGreen.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Verified,
-                                    contentDescription = "Stamped",
-                                    tint = IncomeGreen,
-                                    modifier = Modifier.size(11.dp)
-                                )
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(
-                                    text = "STAMPED",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = IncomeGreen,
-                                    fontSize = 9.sp
-                                )
-                            }
-                        }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (expense.isPaid) ChecklistPurpleContainer else ExpenseRoseContainer)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = if (expense.isPaid) "PAID" else "UNPAID",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = if (expense.isPaid) ChecklistPurpleLight else ExpenseRose,
+                            fontSize = 10.sp
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Right: Paid Status Tag & Amount
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "-${CurrencyUtils.formatPounds(expense.amount)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (expense.isPaid) ChecklistPurplePrimary else ExpenseRose
-                )
-                Spacer(modifier = Modifier.height(2.dp))
+            // Matching Realistic Circular Rubber Paid Stamp Centered in Middle of Card!
+            if (expense.isStamped) {
                 Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(if (expense.isPaid) ChecklistPurpleContainer else ExpenseRoseContainer)
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                    modifier = Modifier.matchParentSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = if (expense.isPaid) "PAID" else "UNPAID",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = if (expense.isPaid) ChecklistPurpleLight else ExpenseRose,
-                        fontSize = 10.sp
-                    )
+                    RealisticCirclePaidStamp()
                 }
             }
         }
