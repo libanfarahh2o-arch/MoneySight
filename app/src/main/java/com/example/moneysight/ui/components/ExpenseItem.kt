@@ -268,17 +268,17 @@ fun RealisticCirclePaidStamp(
     Box(
         modifier = modifier
             .rotate(-10f)
-            .size(62.dp)
+            .size(42.dp)
             .clip(CircleShape)
-            .border(2.2.dp, stampColor, CircleShape)
+            .border(1.8.dp, stampColor, CircleShape)
             .background(IncomeGreenContainer.copy(alpha = 0.45f)),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(3.dp)
-                .border(1.dp, stampColor.copy(alpha = 0.7f), CircleShape),
+                .padding(2.dp)
+                .border(0.8.dp, stampColor.copy(alpha = 0.7f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -286,27 +286,27 @@ fun RealisticCirclePaidStamp(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "★ ★ ★",
+                    text = "★",
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 7.sp,
+                    fontSize = 6.sp,
                     color = stampColor,
                     fontWeight = FontWeight.ExtraBold
                 )
                 Text(
                     text = "PAID",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = stampColor,
-                    fontSize = 14.sp,
-                    letterSpacing = 1.2.sp
+                    fontSize = 10.5.sp,
+                    letterSpacing = 1.sp
                 )
                 Text(
                     text = "STAMPED",
                     style = MaterialTheme.typography.labelSmall,
-                    fontSize = 6.5.sp,
+                    fontSize = 5.5.sp,
                     color = stampColor,
                     fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 0.8.sp
+                    letterSpacing = 0.5.sp
                 )
             }
         }
