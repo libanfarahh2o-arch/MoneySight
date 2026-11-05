@@ -40,8 +40,6 @@ import com.moneysight.app.ui.theme.ExpenseBorder
 import com.moneysight.app.ui.theme.ExpenseRose
 import com.moneysight.app.ui.theme.ExpenseRoseContainer
 import com.moneysight.app.ui.theme.ExpenseSurface
-import com.moneysight.app.ui.theme.ForestCardBorder
-import com.moneysight.app.ui.theme.ForestSurfaceVariant
 import com.moneysight.app.ui.theme.IncomeGreen
 import com.moneysight.app.ui.theme.IncomeGreenContainer
 import com.moneysight.app.ui.theme.TextPrimaryOnDark
@@ -143,67 +141,38 @@ fun ExpenseItem(
                     if (expense.dueDate.isNotBlank()) {
                         Spacer(modifier = Modifier.height(3.dp))
                         val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
-                        val (statusText, badgeBg, badgeText, badgeBorder) = when (dueStatus) {
-                            is DueDateStatus.Today -> Quadruple(
-                                "Due Today (${expense.dueDate})",
-                                WarningAmber.copy(alpha = 0.2f),
-                                WarningAmber,
-                                WarningAmber.copy(alpha = 0.6f)
-                            )
+                        val (statusText, textColor) = when (dueStatus) {
+                            is DueDateStatus.Today -> "Due Today (${expense.dueDate})" to WarningAmber
                             is DueDateStatus.DaysRemaining -> {
                                 val days = dueStatus.days
                                 val label = if (days == 1) "1 day left (${expense.dueDate})" else "$days days left (${expense.dueDate})"
-                                val isUrgent = days <= 3
-                                Quadruple(
-                                    label,
-                                    if (isUrgent) WarningAmber.copy(alpha = 0.2f) else IncomeGreenContainer,
-                                    if (isUrgent) WarningAmber else IncomeGreen,
-                                    if (isUrgent) WarningAmber.copy(alpha = 0.5f) else IncomeGreen.copy(alpha = 0.5f)
-                                )
+                                label to (if (days <= 3) WarningAmber else IncomeGreen)
                             }
                             is DueDateStatus.Overdue -> {
                                 val days = dueStatus.days
                                 val label = if (days == 1) "Overdue 1 day (${expense.dueDate})" else "Overdue $days days (${expense.dueDate})"
-                                Quadruple(
-                                    label,
-                                    WarningRed.copy(alpha = 0.2f),
-                                    WarningRed,
-                                    WarningRed.copy(alpha = 0.6f)
-                                )
+                                label to WarningRed
                             }
-                            is DueDateStatus.Invalid -> Quadruple(
-                                "Due: ${expense.dueDate}",
-                                ForestSurfaceVariant,
-                                TextSecondaryOnDark,
-                                ForestCardBorder
-                            )
+                            is DueDateStatus.Invalid -> "Due: ${expense.dueDate}" to TextSecondaryOnDark
                         }
 
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(badgeBg)
-                                .border(1.dp, badgeBorder, RoundedCornerShape(6.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.CalendarToday,
-                                    contentDescription = "Days left to payment",
-                                    tint = badgeText,
-                                    modifier = Modifier.size(10.dp)
-                                )
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(
-                                    text = statusText,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = badgeText,
-                                    fontSize = 10.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = "Days left to payment",
+                                tint = textColor,
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = statusText,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                                color = textColor,
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
 
@@ -266,10 +235,3 @@ fun ExpenseItem(
         }
     }
 }
-
-private data class Quadruple<A, B, C, D>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D
-)
