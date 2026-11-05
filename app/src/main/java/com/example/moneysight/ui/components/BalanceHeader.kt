@@ -74,70 +74,61 @@ fun BalanceHeader(
         colors = CardDefaults.cardColors(containerColor = ForestSurface),
         border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(14.dp)
         ) {
-            // Top Controls Row: Theme Button on Top-Left, Collapse Toggle on Top-Right (Unobscured click targets)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Top-Left: Compact Theme Mode Switcher Button
-                if (onToggleThemeClicked != null) {
-                    val isSystemDark = isSystemInDarkTheme()
-                    val (themeIcon, themeLabel) = when (currentThemeMode) {
-                        ThemeMode.DARK -> Icons.Default.DarkMode to "Dark"
-                        ThemeMode.LIGHT -> Icons.Default.WbSunny to "Light"
-                        ThemeMode.SYSTEM -> Icons.Default.SettingsBrightness to if (isSystemDark) "Auto (Dark)" else "Auto (Light)"
-                    }
-                    Row(
-                        modifier = Modifier
-                            .height(30.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(ForestSurfaceVariant)
-                            .clickable { onToggleThemeClicked() }
-                            .padding(horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = themeIcon,
-                            contentDescription = "Switch Theme Mode",
-                            tint = MintGreenPrimary,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = themeLabel,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimaryOnDark,
-                            fontSize = 11.sp
-                        )
-                    }
-                } else {
-                    Spacer(modifier = Modifier.width(1.dp))
+            // Far Top-Left: Compact Theme Mode Switcher (if present)
+            if (onToggleThemeClicked != null) {
+                val isSystemDark = isSystemInDarkTheme()
+                val (themeIcon, themeLabel) = when (currentThemeMode) {
+                    ThemeMode.DARK -> Icons.Default.DarkMode to "Dark"
+                    ThemeMode.LIGHT -> Icons.Default.WbSunny to "Light"
+                    ThemeMode.SYSTEM -> Icons.Default.SettingsBrightness to if (isSystemDark) "Auto (Dark)" else "Auto (Light)"
                 }
-
-                // Top-Right: Collapse / Expand Income Toggle Button
-                IconButton(
-                    onClick = onToggleIncomeExpand,
-                    modifier = Modifier.size(30.dp)
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .height(28.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(ForestSurfaceVariant)
+                        .clickable { onToggleThemeClicked() }
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = if (isIncomeExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (isIncomeExpanded) "Collapse Income" else "Expand Income",
-                        tint = MintGreenPrimary
+                        imageVector = themeIcon,
+                        contentDescription = "Switch Theme Mode",
+                        tint = MintGreenPrimary,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = themeLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimaryOnDark,
+                        fontSize = 11.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(2.dp))
+            // Far Top-Right: Collapse / Expand Income Toggle Button
+            IconButton(
+                onClick = onToggleIncomeExpand,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(28.dp)
+            ) {
+                Icon(
+                    imageVector = if (isIncomeExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (isIncomeExpanded) "Collapse Income" else "Expand Income",
+                    tint = MintGreenPrimary
+                )
+            }
 
-            // CENTRAL HERO COLUMN: Perfectly Centered Title, Label & Big Balance Amount
+            // CENTRAL HERO COLUMN: MoneySight at the very top
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
