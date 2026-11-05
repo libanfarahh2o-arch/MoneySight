@@ -778,11 +778,13 @@ fun EditExpenseDialog(
     descriptionInput: String,
     amountInput: String,
     notesInput: String = "",
+    dueDateInput: String = "",
     selectedGroupId: String,
     groups: List<ExpenseGroup>,
     onDescriptionChanged: (String) -> Unit,
     onAmountChanged: (String) -> Unit,
     onNotesChanged: (String) -> Unit = {},
+    onDueDateChanged: (String) -> Unit = {},
     onGroupIdChanged: (String) -> Unit,
     onConfirm: () -> Unit,
     onDelete: (() -> Unit)? = null,
@@ -879,6 +881,27 @@ fun EditExpenseDialog(
                     prefix = { Text("£ ", fontWeight = FontWeight.Bold, color = MintGreenPrimary) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = ForestSurfaceVariant,
+                        unfocusedContainerColor = ForestSurfaceVariant,
+                        focusedBorderColor = MintGreenPrimary,
+                        unfocusedBorderColor = ForestCardBorder,
+                        focusedTextColor = TextPrimaryOnDark,
+                        unfocusedTextColor = TextPrimaryOnDark,
+                        cursorColor = MintGreenPrimary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = dueDateInput,
+                    onValueChange = onDueDateChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Date bill is coming out (optional)", color = TextSecondaryOnDark) },
+                    placeholder = { Text("e.g. 1st, 15th, 28th", color = TextMutedOnDark.copy(alpha = 0.5f), fontSize = 12.sp) },
+                    singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = ForestSurfaceVariant,

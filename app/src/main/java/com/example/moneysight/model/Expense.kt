@@ -13,5 +13,6 @@ data class Expense(
     val isPaid: Boolean = false,
     val isStamped: Boolean = false,
     val notes: String = "",
+    val dueDate: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )

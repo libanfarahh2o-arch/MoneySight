@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.StickyNote2
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Card
@@ -41,6 +42,7 @@ import com.moneysight.app.ui.theme.ExpenseRoseContainer
 import com.moneysight.app.ui.theme.ExpenseSurface
 import com.moneysight.app.ui.theme.IncomeGreen
 import com.moneysight.app.ui.theme.IncomeGreenContainer
+import com.moneysight.app.ui.theme.MintGreenPrimary
 import com.moneysight.app.ui.theme.TextPrimaryOnDark
 import com.moneysight.app.ui.theme.TextSecondaryOnDark
 import com.moneysight.app.util.CurrencyUtils
@@ -75,7 +77,7 @@ fun ExpenseItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left: Expense Icon + Description + PAID Stamp Badge + Note Indicator
+            // Left: Expense Icon + Description + PAID Stamp Badge + Due Date + Note Indicator
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
@@ -130,6 +132,28 @@ fun ExpenseItem(
                                     fontSize = 9.sp
                                 )
                             }
+                        }
+                    }
+
+                    if (expense.dueDate.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = "Due Date",
+                                tint = MintGreenPrimary,
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = "Due: ${expense.dueDate}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondaryOnDark,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
 

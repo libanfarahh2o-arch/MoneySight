@@ -75,6 +75,7 @@ import com.moneysight.app.util.ExpenseCategory
 fun AddExpenseSection(
     descriptionInput: String,
     amountInput: String,
+    dueDateInput: String = "",
     selectedGroupId: String,
     groups: List<ExpenseGroup>,
     activeCategories: List<ExpenseCategory>,
@@ -83,6 +84,7 @@ fun AddExpenseSection(
     onToggleExpand: () -> Unit,
     onDescriptionChanged: (String) -> Unit,
     onAmountChanged: (String) -> Unit,
+    onDueDateChanged: (String) -> Unit = {},
     onSelectGroup: (String) -> Unit,
     onOpenManageGroupsClicked: () -> Unit,
     onOpenManagePresetsClicked: () -> Unit,
@@ -267,6 +269,32 @@ fun AddExpenseSection(
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("What is this expense for?", color = TextSecondaryOnDark) },
                         placeholder = { Text("e.g. Rent, Grocery shopping, Electric bill", color = TextMutedOnDark.copy(alpha = 0.6f)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Next
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = ForestSurfaceVariant,
+                            unfocusedContainerColor = ForestSurfaceVariant,
+                            focusedBorderColor = EntryTeal,
+                            unfocusedBorderColor = ForestCardBorder,
+                            focusedTextColor = TextPrimaryOnDark,
+                            unfocusedTextColor = TextPrimaryOnDark,
+                            cursorColor = EntryTeal
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Due Date Input (Optional)
+                    OutlinedTextField(
+                        value = dueDateInput,
+                        onValueChange = onDueDateChanged,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Date bill is coming out (optional)", color = TextSecondaryOnDark) },
+                        placeholder = { Text("e.g. 1st, 15th, 28th", color = TextMutedOnDark.copy(alpha = 0.6f)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
