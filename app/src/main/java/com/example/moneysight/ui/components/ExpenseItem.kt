@@ -79,7 +79,7 @@ fun ExpenseItem(
                 .fillMaxWidth()
                 .padding(14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             // Left: Expense Icon + Description + PAID Stamp Badge + Due Date Status + Note Indicator
             Row(
@@ -164,9 +164,9 @@ fun ExpenseItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Right Side: Amount + Due Date Indicator Underneath + Stamp Mode Button
+            // Right Side: Amount (Top Right) + Due Date Indicator Underneath + Stamp Mode Button
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Column(
