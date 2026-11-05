@@ -166,76 +166,52 @@ fun ExpenseItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Right Side: Amount (Top Right) + Due Date Indicator Underneath + Stamp Mode Button
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Right Side: Amount (Top Right) + Due Date Indicator Underneath
+            Column(
+                horizontalAlignment = Alignment.End
             ) {
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = "-${CurrencyUtils.formatPounds(expense.amount)}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (expense.isStamped) IncomeGreen else ExpenseRose
-                    )
+                Text(
+                    text = "-${CurrencyUtils.formatPounds(expense.amount)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (expense.isStamped) IncomeGreen else ExpenseRose
+                )
 
-                    if (!expense.isStamped && expense.dueDate.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(3.dp))
-                        val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
-                        val (statusText, textColor) = when (dueStatus) {
-                            is DueDateStatus.Today -> "Due Today" to WarningAmber
-                            is DueDateStatus.DaysRemaining -> {
-                                val days = dueStatus.days
-                                val label = if (days == 1) "1 day left" else "$days days left"
-                                label to (if (days <= 3) WarningAmber else IncomeGreen)
-                            }
-                            is DueDateStatus.Overdue -> {
-                                val days = dueStatus.days
-                                val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
-                                label to WarningRed
-                            }
-                            is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
+                if (!expense.isStamped && expense.dueDate.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(3.dp))
+                    val dueStatus = DateUtils.calculateDueDateStatus(expense.dueDate)
+                    val (statusText, textColor) = when (dueStatus) {
+                        is DueDateStatus.Today -> "Due Today" to WarningAmber
+                        is DueDateStatus.DaysRemaining -> {
+                            val days = dueStatus.days
+                            val label = if (days == 1) "1 day left" else "$days days left"
+                            label to (if (days <= 3) WarningAmber else IncomeGreen)
                         }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            CalendarDayIcon(
-                                dayText = expense.dueDate,
-                                tint = textColor
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = statusText,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                color = textColor,
-                                fontSize = 11.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                        is DueDateStatus.Overdue -> {
+                            val days = dueStatus.days
+                            val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
+                            label to WarningRed
                         }
+                        is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
                     }
-                }
 
-                if (isStampModeActive) {
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (expense.isStamped) IncomeGreenContainer else IncomeGreen.copy(alpha = 0.15f))
-                            .border(1.5.dp, IncomeGreen, RoundedCornerShape(8.dp))
-                            .clickable { onToggleStampedClicked() },
-                        contentAlignment = Alignment.Center
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Verified,
-                            contentDescription = "Stamp Paid",
-                            tint = IncomeGreen,
-                            modifier = Modifier.size(20.dp)
+                        CalendarDayIcon(
+                            dayText = expense.dueDate,
+                            tint = textColor
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = textColor,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
