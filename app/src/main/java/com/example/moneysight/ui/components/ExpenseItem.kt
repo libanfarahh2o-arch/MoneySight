@@ -88,7 +88,8 @@ fun ExpenseItem(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
+                        .padding(top = 1.dp)
+                        .size(22.dp)
                         .clip(CircleShape)
                         .background(if (expense.isStamped) IncomeGreenContainer else ExpenseRoseContainer),
                     contentAlignment = Alignment.Center
@@ -97,7 +98,7 @@ fun ExpenseItem(
                         imageVector = if (expense.isStamped) Icons.Default.Verified else Icons.Default.Receipt,
                         contentDescription = null,
                         tint = if (expense.isStamped) IncomeGreen else ExpenseRose,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(13.dp)
                     )
                 }
 
