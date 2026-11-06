@@ -1,5 +1,6 @@
 package com.moneysight.app.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,6 +51,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -625,28 +633,77 @@ fun MoneySightScreen(
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    // 2. Circular Stamp Button (Matching circular stamp look; STAMP when off, ON when clicked)
-                    FloatingActionButton(
-                        onClick = { viewModel.toggleStampMode() },
-                        containerColor = if (isStampModeActive) IncomeGreen else ForestSurfaceVariant,
-                        contentColor = if (isStampModeActive) TextPrimaryOnDark else IncomeGreen,
-                        shape = CircleShape,
+                    // 2. Circular Stamp Action Button (Matching the bill rubber stamp design!)
+                    val stampBtnInkColor = if (isStampModeActive) Color(0xFF4CAF50) else Color(0xFF2E7D32)
+                    val stampBtnLightColor = if (isStampModeActive) Color(0xFF81C784) else Color(0xFF388E3C)
+                    val stampBtnBrush = Brush.linearGradient(
+                        colors = listOf(
+                            stampBtnInkColor.copy(alpha = 0.95f),
+                            stampBtnLightColor.copy(alpha = 0.88f),
+                            stampBtnInkColor.copy(alpha = 0.92f)
+                        )
+                    )
+
+                    Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .border(
-                                1.5.dp,
-                                if (isStampModeActive) IncomeGreen else IncomeGreen.copy(alpha = 0.5f),
-                                CircleShape
-                            )
+                            .rotate(-10f)
+                            .clip(CircleShape)
+                            .background(if (isStampModeActive) IncomeGreen.copy(alpha = 0.28f) else ForestSurfaceVariant)
+                            .clickable { viewModel.toggleStampMode() },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = if (isStampModeActive) "ON" else "STAMP",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = if (isStampModeActive) 13.sp else 10.sp,
-                            letterSpacing = 0.5.sp,
-                            color = if (isStampModeActive) TextPrimaryOnDark else IncomeGreen
-                        )
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            val strokeOuter = 1.8.dp.toPx()
+                            val strokeInner = 0.8.dp.toPx()
+                            val centerOffset = Offset(size.width / 2f, size.height / 2f)
+                            val outerRadius = (size.width / 2f) - strokeOuter
+
+                            // Outer primary distressed dashed ring
+                            drawCircle(
+                                brush = stampBtnBrush,
+                                radius = outerRadius,
+                                center = centerOffset,
+                                style = Stroke(
+                                    width = strokeOuter,
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 2f, 22f, 1.5f), 0f)
+                                )
+                            )
+
+                            // Inner distressed ring
+                            drawCircle(
+                                brush = stampBtnBrush,
+                                radius = outerRadius - 3.dp.toPx(),
+                                center = centerOffset,
+                                style = Stroke(
+                                    width = strokeInner,
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(16f, 2f, 8f, 2f), 3f)
+                                )
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "★",
+                                style = TextStyle(
+                                    brush = stampBtnBrush,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 6.sp
+                                )
+                            )
+                            Text(
+                                text = if (isStampModeActive) "ON" else "STAMP",
+                                style = TextStyle(
+                                    brush = stampBtnBrush,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = if (isStampModeActive) 12.sp else 9.5.sp,
+                                    letterSpacing = 0.8.sp
+                                )
+                            )
+                        }
                     }
                 }
             }
