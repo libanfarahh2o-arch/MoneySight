@@ -303,11 +303,11 @@ fun RealisticCirclePaidStamp(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "★",
+                    text = "★ ★ ★",
                     style = TextStyle(
                         brush = stampInkBrush,
                         fontWeight = FontWeight.ExtraBold,
-                        fontSize = 6.sp
+                        fontSize = 7.sp
                     )
                 )
                 Text(
@@ -315,17 +315,8 @@ fun RealisticCirclePaidStamp(
                     style = TextStyle(
                         brush = stampInkBrush,
                         fontWeight = FontWeight.ExtraBold,
-                        fontSize = 10.5.sp,
-                        letterSpacing = 1.sp
-                    )
-                )
-                Text(
-                    text = "STAMPED",
-                    style = TextStyle(
-                        brush = stampInkBrush,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 5.5.sp,
-                        letterSpacing = 0.5.sp
+                        fontSize = 12.sp,
+                        letterSpacing = 1.2.sp
                     )
                 )
             }
