@@ -30,8 +30,8 @@ enum class ExpenseSortOrder(val label: String) {
 
 enum class ChecklistFilter(val label: String) {
     ALL("All Bills"),
-    PAID_ONLY("Paid Bills"),
-    UNPAID_ONLY("Unpaid Bills"),
+    PAID_ONLY("Ticked Bills"),
+    UNPAID_ONLY("Unticked Bills"),
     STAMPED_ONLY("Stamped Bills"),
     UNSTAMPED_ONLY("Unstamped Bills")
 }
