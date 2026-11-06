@@ -1,6 +1,7 @@
 package com.moneysight.app.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,8 +33,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -259,8 +263,8 @@ fun CalendarDayIcon(
 }
 
 /**
- * Ultra-Realistic Circular Rubber Stamp for Paid Bills with non-uniform ink coverage,
- * dual-ring distressed border, and authentic ink texture tones.
+ * Ultra-Realistic Circular Rubber Stamp for Paid Bills with distressed, uneven ink edges,
+ * stippled rim erosion, and authentic ink texture.
  */
 @Composable
 fun RealisticCirclePaidStamp(
@@ -271,7 +275,7 @@ fun RealisticCirclePaidStamp(
     val stampInkBrush = Brush.linearGradient(
         colors = listOf(
             mainInkColor.copy(alpha = 0.92f),
-            lightInkColor.copy(alpha = 0.85f),
+            lightInkColor.copy(alpha = 0.82f),
             mainInkColor.copy(alpha = 0.88f)
         )
     )
@@ -281,45 +285,85 @@ fun RealisticCirclePaidStamp(
             .rotate(-11f)
             .size(42.dp)
             .clip(CircleShape)
-            .border(
-                border = BorderStroke(1.8.dp, stampInkBrush),
-                shape = CircleShape
-            )
             .background(Color(0xFF1B5E20).copy(alpha = 0.12f)),
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(2.dp)
-                .border(
-                    border = BorderStroke(0.8.dp, stampInkBrush),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "★ ★ ★",
-                    style = TextStyle(
-                        brush = stampInkBrush,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 7.sp
-                    )
+        // Distressed, uneven ink texture border canvas
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val strokeOuter = 2.dp.toPx()
+            val strokeInner = 0.9.dp.toPx()
+            val centerOffset = Offset(size.width / 2f, size.height / 2f)
+            val outerRadius = (size.width / 2f) - strokeOuter
+
+            // Outer primary distressed dashed ring
+            drawCircle(
+                brush = stampInkBrush,
+                radius = outerRadius,
+                center = centerOffset,
+                style = Stroke(
+                    width = strokeOuter,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(16f, 2f, 28f, 1.5f, 10f, 2.5f), 0f)
                 )
-                Text(
-                    text = "PAID",
-                    style = TextStyle(
-                        brush = stampInkBrush,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 12.sp,
-                        letterSpacing = 1.2.sp
-                    )
+            )
+
+            // Outer secondary offset ring for uneven edge stippling
+            drawCircle(
+                color = mainInkColor.copy(alpha = 0.6f),
+                radius = outerRadius + 0.5.dp.toPx(),
+                center = centerOffset,
+                style = Stroke(
+                    width = 0.8.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 4f, 12f, 3f, 5f, 6f), 3f)
+                )
+            )
+
+            // Inner distressed ring
+            drawCircle(
+                brush = stampInkBrush,
+                radius = outerRadius - 3.5.dp.toPx(),
+                center = centerOffset,
+                style = Stroke(
+                    width = strokeInner,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 2.5f, 9f, 2f, 14f, 3f), 4f)
+                )
+            )
+
+            // Micro ink bleed dots around outer rim
+            for (angle in 0 until 360 step 20) {
+                val rad = Math.toRadians(angle.toDouble())
+                val jitter = ((angle * 13) % 5) - 2.5f
+                val dotX = centerOffset.x + (outerRadius + jitter) * kotlin.math.cos(rad).toFloat()
+                val dotY = centerOffset.y + (outerRadius + jitter) * kotlin.math.sin(rad).toFloat()
+                drawCircle(
+                    color = mainInkColor.copy(alpha = 0.45f),
+                    radius = 0.7.dp.toPx(),
+                    center = Offset(dotX, dotY)
                 )
             }
+        }
+
+        // Stamp Text
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "★ ★ ★",
+                style = TextStyle(
+                    brush = stampInkBrush,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 7.sp
+                )
+            )
+            Text(
+                text = "PAID",
+                style = TextStyle(
+                    brush = stampInkBrush,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 12.sp,
+                    letterSpacing = 1.2.sp
+                )
+            )
         }
     }
 }
