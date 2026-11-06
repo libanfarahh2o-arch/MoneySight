@@ -9,6 +9,8 @@ import com.moneysight.app.model.ExpenseGroup
 import com.moneysight.app.model.IncomeSource
 import com.moneysight.app.ui.theme.ThemeMode
 import com.moneysight.app.util.CurrencyUtils
+import com.moneysight.app.util.DateUtils
+import com.moneysight.app.util.DueDateStatus
 import com.moneysight.app.util.ExpenseCategories
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -407,14 +409,29 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             return numericOnly.toIntOrNull() ?: Int.MAX_VALUE
         }
 
+        fun getEarliestDuePriorityRank(expense: Expense): Int {
+            if (expense.isStamped) return 3
+            if (expense.dueDate.isBlank()) return 2
+            val status = DateUtils.calculateDueDateStatus(expense.dueDate)
+            return when (status) {
+                is DueDateStatus.Today -> 0
+                is DueDateStatus.DaysRemaining -> 0
+                is DueDateStatus.Overdue -> 1
+                is DueDateStatus.Invalid -> 2
+            }
+        }
+
         // 4. Sorting & Filter Rules
         when (sort) {
             ExpenseSortOrder.NEWEST -> result.sortedByDescending { it.timestamp }
             ExpenseSortOrder.OLDEST -> result.sortedBy { it.timestamp }
             ExpenseSortOrder.EARLIEST_DUE -> {
-                // Show all bills, prioritising bills WITH a due date (sorted by earliest due day), followed by bills without dates
+                // Priority 0: Unstamped upcoming due dates (on top first)
+                // Priority 1: Unstamped past due dates (after upcoming)
+                // Priority 2: Bills without due dates
+                // Priority 3: Stamped bills
                 result.sortedWith(
-                    compareBy<Expense> { it.dueDate.isBlank() }
+                    compareBy<Expense> { getEarliestDuePriorityRank(it) }
                         .thenBy { parseDueDayNumber(it.dueDate) }
                         .thenByDescending { it.timestamp }
                 )
