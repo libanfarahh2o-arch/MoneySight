@@ -905,32 +905,13 @@ fun BillChecklistItem(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Right: Paid Status Tag & Amount
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = "-${CurrencyUtils.formatPounds(expense.amount)}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (expense.isPaid) ChecklistPurplePrimary else ExpenseRose
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (expense.isPaid) ChecklistPurpleContainer else ExpenseRoseContainer)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = if (expense.isPaid) "PAID" else "UNPAID",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = if (expense.isPaid) ChecklistPurpleLight else ExpenseRose,
-                            fontSize = 10.sp
-                        )
-                    }
-                }
+                // Right: Amount
+                Text(
+                    text = "-${CurrencyUtils.formatPounds(expense.amount)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (expense.isPaid) ChecklistPurplePrimary else ExpenseRose
+                )
             }
 
             // Matching Realistic Circular Rubber Paid Stamp Centered in Middle of Card!
