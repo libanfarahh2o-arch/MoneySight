@@ -529,7 +529,7 @@ fun BillChecklistScreen(
                         }
                     }
 
-                    // Group View Segmented Control
+                    // Combined View Mode Segmented Control (Flat List Default)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -539,35 +539,7 @@ fun BillChecklistScreen(
                             .padding(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // Grouped Folders Option
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (isGroupedChecklistMode) ChecklistPurplePrimary else androidx.compose.ui.graphics.Color.Transparent)
-                                .clickable { if (!isGroupedChecklistMode) viewModel.toggleChecklistGroupedMode() }
-                                .padding(vertical = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Group,
-                                    contentDescription = null,
-                                    tint = if (isGroupedChecklistMode) OnChecklistPurple else ChecklistPurpleLight,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Grouped Folders",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isGroupedChecklistMode) OnChecklistPurple else TextPrimaryOnDark,
-                                    fontSize = 12.sp
-                                )
-                            }
-                        }
-
-                        // Flat List Option
+                        // 1. Flat List Segment (DEFAULT)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -590,6 +562,34 @@ fun BillChecklistScreen(
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = if (!isGroupedChecklistMode) OnChecklistPurple else TextPrimaryOnDark,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+
+                        // 2. Grouped Folders Segment
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (isGroupedChecklistMode) ChecklistPurplePrimary else androidx.compose.ui.graphics.Color.Transparent)
+                                .clickable { if (!isGroupedChecklistMode) viewModel.toggleChecklistGroupedMode() }
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Group,
+                                    contentDescription = null,
+                                    tint = if (isGroupedChecklistMode) OnChecklistPurple else ChecklistPurpleLight,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Grouped Folders",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isGroupedChecklistMode) OnChecklistPurple else TextPrimaryOnDark,
                                     fontSize = 12.sp
                                 )
                             }

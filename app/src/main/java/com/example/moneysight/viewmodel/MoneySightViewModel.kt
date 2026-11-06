@@ -320,7 +320,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     private val _checklistFilter = MutableStateFlow(ChecklistFilter.ALL)
     val checklistFilter: StateFlow<ChecklistFilter> = _checklistFilter.asStateFlow()
 
-    private val _isGroupedChecklistMode = MutableStateFlow(true)
+    private val _isGroupedChecklistMode = MutableStateFlow(false)
     val isGroupedChecklistMode: StateFlow<Boolean> = _isGroupedChecklistMode.asStateFlow()
 
     // Stamp Mode State for Main Page
