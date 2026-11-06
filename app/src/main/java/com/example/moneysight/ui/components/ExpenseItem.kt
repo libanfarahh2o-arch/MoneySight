@@ -32,7 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -257,28 +259,43 @@ fun CalendarDayIcon(
 }
 
 /**
- * Realistic Circular Rubber Stamp for Paid Bills centered in the middle of the bill card.
+ * Ultra-Realistic Circular Rubber Stamp for Paid Bills with non-uniform ink coverage,
+ * dual-ring distressed border, and authentic ink texture tones.
  */
 @Composable
 fun RealisticCirclePaidStamp(
     modifier: Modifier = Modifier
 ) {
-    val stampColor = IncomeGreen.copy(alpha = 0.88f)
+    val mainInkColor = Color(0xFF1B5E20)
+    val lightInkColor = Color(0xFF2E7D32)
+    val stampInkBrush = Brush.linearGradient(
+        colors = listOf(
+            mainInkColor.copy(alpha = 0.92f),
+            lightInkColor.copy(alpha = 0.85f),
+            mainInkColor.copy(alpha = 0.88f)
+        )
+    )
 
     Box(
         modifier = modifier
-            .rotate(-10f)
+            .rotate(-11f)
             .size(42.dp)
             .clip(CircleShape)
-            .border(1.8.dp, stampColor, CircleShape)
-            .background(IncomeGreenContainer.copy(alpha = 0.45f)),
+            .border(
+                border = BorderStroke(1.8.dp, stampInkBrush),
+                shape = CircleShape
+            )
+            .background(Color(0xFF1B5E20).copy(alpha = 0.12f)),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(2.dp)
-                .border(0.8.dp, stampColor.copy(alpha = 0.7f), CircleShape),
+                .border(
+                    border = BorderStroke(0.8.dp, stampInkBrush),
+                    shape = CircleShape
+                ),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -287,26 +304,29 @@ fun RealisticCirclePaidStamp(
             ) {
                 Text(
                     text = "★",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 6.sp,
-                    color = stampColor,
-                    fontWeight = FontWeight.ExtraBold
+                    style = TextStyle(
+                        brush = stampInkBrush,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 6.sp
+                    )
                 )
                 Text(
                     text = "PAID",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = stampColor,
-                    fontSize = 10.5.sp,
-                    letterSpacing = 1.sp
+                    style = TextStyle(
+                        brush = stampInkBrush,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 10.5.sp,
+                        letterSpacing = 1.sp
+                    )
                 )
                 Text(
                     text = "STAMPED",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 5.5.sp,
-                    color = stampColor,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 0.5.sp
+                    style = TextStyle(
+                        brush = stampInkBrush,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 5.5.sp,
+                        letterSpacing = 0.5.sp
+                    )
                 )
             }
         }
