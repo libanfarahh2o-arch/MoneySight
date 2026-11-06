@@ -398,7 +398,7 @@ fun BillChecklistScreen(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                text = "$paidExpensesCount ticked",
+                                                text = "$paidExpensesCount",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = IncomeGreen,
@@ -415,7 +415,7 @@ fun BillChecklistScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "$paidExpensesCount of $totalExpensesCount ticked",
+                                        text = "$paidExpensesCount of $totalExpensesCount",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = IncomeGreen.copy(alpha = 0.85f),
                                         fontSize = 11.sp
@@ -452,7 +452,7 @@ fun BillChecklistScreen(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                text = "$unpaidExpensesCount unticked",
+                                                text = "$unpaidExpensesCount",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = ExpenseRose,
@@ -469,7 +469,7 @@ fun BillChecklistScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "$unpaidExpensesCount of $totalExpensesCount unticked",
+                                        text = "$unpaidExpensesCount of $totalExpensesCount",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = ExpenseRose.copy(alpha = 0.85f),
                                         fontSize = 11.sp
