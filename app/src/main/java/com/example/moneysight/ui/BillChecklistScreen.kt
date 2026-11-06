@@ -385,7 +385,7 @@ fun BillChecklistScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "TICKED BILLS",
+                                            text = "TICKED",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = IncomeGreen,
@@ -415,7 +415,7 @@ fun BillChecklistScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "$paidExpensesCount of $totalExpensesCount bills ticked",
+                                        text = "$paidExpensesCount of $totalExpensesCount ticked",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = IncomeGreen.copy(alpha = 0.85f),
                                         fontSize = 11.sp
@@ -439,7 +439,7 @@ fun BillChecklistScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "UNTICKED BILLS",
+                                            text = "UNTICKED",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = ExpenseRose,
@@ -469,7 +469,7 @@ fun BillChecklistScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "$unpaidExpensesCount of $totalExpensesCount bills unticked",
+                                        text = "$unpaidExpensesCount of $totalExpensesCount unticked",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = ExpenseRose.copy(alpha = 0.85f),
                                         fontSize = 11.sp
