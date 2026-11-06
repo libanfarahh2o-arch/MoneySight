@@ -529,67 +529,42 @@ fun BillChecklistScreen(
                         }
                     }
 
-                    // Combined View Mode Segmented Control (Flat List Default)
+                    // Single Combined View Mode Button (Flat List Default)
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(ChecklistSurface)
-                            .border(1.dp, ChecklistBorder, RoundedCornerShape(14.dp))
-                            .padding(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 1. Flat List Segment (DEFAULT)
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (!isGroupedChecklistMode) ChecklistPurplePrimary else androidx.compose.ui.graphics.Color.Transparent)
-                                .clickable { if (isGroupedChecklistMode) viewModel.toggleChecklistGroupedMode() }
-                                .padding(vertical = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.FormatListBulleted,
-                                    contentDescription = null,
-                                    tint = if (!isGroupedChecklistMode) OnChecklistPurple else ChecklistPurpleLight,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Flat List",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (!isGroupedChecklistMode) OnChecklistPurple else TextPrimaryOnDark,
-                                    fontSize = 12.sp
-                                )
-                            }
-                        }
+                        Text(
+                            text = if (isGroupedChecklistMode) "GROUPED VIEW" else "FLAT LIST VIEW",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = ChecklistPurpleLight,
+                            letterSpacing = 0.8.sp
+                        )
 
-                        // 2. Grouped Folders Segment
+                        // Combined View Mode Button
                         Box(
                             modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (isGroupedChecklistMode) ChecklistPurplePrimary else androidx.compose.ui.graphics.Color.Transparent)
-                                .clickable { if (!isGroupedChecklistMode) viewModel.toggleChecklistGroupedMode() }
-                                .padding(vertical = 8.dp),
-                            contentAlignment = Alignment.Center
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(ChecklistSurface)
+                                .border(1.dp, ChecklistPurplePrimary.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                                .clickable { viewModel.toggleChecklistGroupedMode() }
+                                .padding(horizontal = 12.dp, vertical = 7.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = Icons.Default.Group,
-                                    contentDescription = null,
-                                    tint = if (isGroupedChecklistMode) OnChecklistPurple else ChecklistPurpleLight,
+                                    imageVector = if (isGroupedChecklistMode) Icons.Default.Group else Icons.AutoMirrored.Filled.FormatListBulleted,
+                                    contentDescription = "Toggle View Mode",
+                                    tint = ChecklistPurplePrimary,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "Grouped Folders",
+                                    text = if (isGroupedChecklistMode) "Grouped Folders" else "Flat List",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isGroupedChecklistMode) OnChecklistPurple else TextPrimaryOnDark,
+                                    color = TextPrimaryOnDark,
                                     fontSize = 12.sp
                                 )
                             }
