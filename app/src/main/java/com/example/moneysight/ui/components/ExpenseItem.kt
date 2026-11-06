@@ -171,9 +171,7 @@ fun ExpenseItem(
                                 label to (if (days <= 3) WarningAmber else IncomeGreen)
                             }
                             is DueDateStatus.Overdue -> {
-                                val days = dueStatus.days
-                                val label = if (days == 1) "Overdue 1 day" else "Overdue $days days"
-                                label to WarningRed
+                                "Overdue" to WarningRed
                             }
                             is DueDateStatus.Invalid -> "Due Date" to TextSecondaryOnDark
                         }
