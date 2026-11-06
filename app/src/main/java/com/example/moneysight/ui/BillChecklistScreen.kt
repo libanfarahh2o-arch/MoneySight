@@ -413,13 +413,6 @@ fun BillChecklistScreen(
                                         fontWeight = FontWeight.Bold,
                                         color = IncomeGreen
                                     )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "$paidExpensesCount of $totalExpensesCount",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = IncomeGreen.copy(alpha = 0.85f),
-                                        fontSize = 11.sp
-                                    )
                                 }
                             }
 
@@ -466,13 +459,6 @@ fun BillChecklistScreen(
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = ExpenseRose
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "$unpaidExpensesCount of $totalExpensesCount",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = ExpenseRose.copy(alpha = 0.85f),
-                                        fontSize = 11.sp
                                     )
                                 }
                             }
