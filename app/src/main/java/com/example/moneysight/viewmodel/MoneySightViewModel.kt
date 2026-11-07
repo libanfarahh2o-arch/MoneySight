@@ -47,6 +47,13 @@ enum class AppScreen {
     BILL_CHECKLIST
 }
 
+data class CategoryBreakdownData(
+    val categoryName: String,
+    val totalAmount: Double,
+    val percentage: Float,
+    val billCount: Int
+)
+
 class MoneySightViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = MoneySightRepository(application)
@@ -483,6 +490,31 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = 0.0
     )
 
+    // Where Your Money Goes Category Breakdown Flow (Synced with Main Page Expenses & Presets)
+    val categoryBreakdownList: StateFlow<List<CategoryBreakdownData>> = expenses.map { list ->
+        val totalSum = list.sumOf { it.amount }
+        if (totalSum <= 0) return@map emptyList()
+
+        val grouped = list.groupBy { expense ->
+            ExpenseCategories.getCategoryForExpense(expense.description)
+        }
+
+        grouped.map { (catName, catExpenses) ->
+            val catSum = catExpenses.sumOf { it.amount }
+            val pct = ((catSum / totalSum) * 100).toFloat()
+            CategoryBreakdownData(
+                categoryName = catName,
+                totalAmount = catSum,
+                percentage = pct,
+                billCount = catExpenses.size
+            )
+        }.sortedByDescending { it.totalAmount }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     // Expense Form Inputs
     private val _descriptionInput = MutableStateFlow("")
     val descriptionInput: StateFlow<String> = _descriptionInput.asStateFlow()
@@ -604,6 +636,17 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _showResetAllStampsDialog = MutableStateFlow(false)
     val showResetAllStampsDialog: StateFlow<Boolean> = _showResetAllStampsDialog.asStateFlow()
+
+    private val _showSimulateGraphDialog = MutableStateFlow(false)
+    val showSimulateGraphDialog: StateFlow<Boolean> = _showSimulateGraphDialog.asStateFlow()
+
+    fun openSimulateGraphDialog() {
+        _showSimulateGraphDialog.value = true
+    }
+
+    fun dismissSimulateGraphDialog() {
+        _showSimulateGraphDialog.value = false
+    }
 
     fun openSettingsDialog() {
         _customPresetInput.value = ""

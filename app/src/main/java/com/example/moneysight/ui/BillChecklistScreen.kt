@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -44,6 +46,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -75,8 +78,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.moneysight.app.model.Expense
-import com.moneysight.app.ui.theme.ChecklistBorder
 import com.moneysight.app.ui.components.RealisticCirclePaidStamp
+import com.moneysight.app.ui.components.SimulateGraphDialog
+import com.moneysight.app.ui.theme.ChecklistBorder
 import com.moneysight.app.ui.theme.ChecklistDarkBackground
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
 import com.moneysight.app.ui.theme.ChecklistPurpleLight
@@ -113,6 +117,7 @@ fun BillChecklistScreen(
 
     val paidExpensesTotal by viewModel.paidExpensesTotal.collectAsStateWithLifecycle()
     val unpaidExpensesTotal by viewModel.unpaidExpensesTotal.collectAsStateWithLifecycle()
+    val totalExpenses by viewModel.totalExpenses.collectAsStateWithLifecycle()
     val paidExpensesCount by viewModel.paidExpensesCount.collectAsStateWithLifecycle()
     val unpaidExpensesCount by viewModel.unpaidExpensesCount.collectAsStateWithLifecycle()
     val stampedExpensesCount by viewModel.stampedExpensesCount.collectAsStateWithLifecycle()
@@ -133,6 +138,8 @@ fun BillChecklistScreen(
     val checklistExpenses by viewModel.checklistExpenses.collectAsStateWithLifecycle()
     val isGroupedChecklistMode by viewModel.isGroupedChecklistMode.collectAsStateWithLifecycle()
 
+    val categoryBreakdowns by viewModel.categoryBreakdownList.collectAsStateWithLifecycle()
+    val showSimulateGraphDialog by viewModel.showSimulateGraphDialog.collectAsStateWithLifecycle()
     val showResetAllBillsDialog by viewModel.showResetAllBillsDialog.collectAsStateWithLifecycle()
 
     // Map tracking expanded state for each group (collapsed by default)
@@ -148,6 +155,36 @@ fun BillChecklistScreen(
                 })
             },
         containerColor = ChecklistDarkBackground,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { viewModel.openSimulateGraphDialog() },
+                containerColor = ChecklistPurplePrimary,
+                contentColor = OnChecklistPurple,
+                shape = CircleShape,
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .padding(end = 4.dp, bottom = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PieChart,
+                        contentDescription = "Where Your Money Goes Graph",
+                        tint = OnChecklistPurple,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Graph",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        color = OnChecklistPurple
+                    )
+                }
+            }
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -177,6 +214,13 @@ fun BillChecklistScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.openSimulateGraphDialog() }) {
+                        Icon(
+                            imageVector = Icons.Default.PieChart,
+                            contentDescription = "Where Your Money Goes",
+                            tint = ChecklistPurplePrimary
+                        )
+                    }
                     IconButton(onClick = { viewModel.openResetAllBillsDialog() }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -831,6 +875,15 @@ fun BillChecklistScreen(
                     Text("Cancel", color = TextSecondaryOnDark)
                 }
             }
+        )
+    }
+
+    // Simulate Category Breakdown Graph Dialog
+    if (showSimulateGraphDialog) {
+        SimulateGraphDialog(
+            categoryBreakdowns = categoryBreakdowns,
+            totalExpenses = totalExpenses,
+            onDismiss = { viewModel.dismissSimulateGraphDialog() }
         )
     }
 }

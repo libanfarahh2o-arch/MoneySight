@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material.icons.filled.Verified
@@ -51,9 +53,16 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextAlign
+import com.moneysight.app.ui.theme.ChecklistPurpleContainer
+import com.moneysight.app.ui.theme.ChecklistPurpleLight
+import com.moneysight.app.ui.theme.ChecklistPurplePrimary
+import com.moneysight.app.ui.theme.ChecklistSurfaceVariant
 import com.moneysight.app.ui.theme.EntryTeal
 import com.moneysight.app.ui.theme.EntryTealContainer
+import com.moneysight.app.ui.theme.ExpenseRose
 import com.moneysight.app.ui.theme.IncomeGreen
+import com.moneysight.app.ui.theme.OnChecklistPurple
 import com.moneysight.app.ui.theme.OnEntryTeal
 import com.moneysight.app.ui.theme.ThemeMode
 import com.moneysight.app.util.ExpenseCategory
@@ -71,6 +80,7 @@ import com.moneysight.app.model.ExpenseGroup
 import com.moneysight.app.model.IncomeSource
 import com.moneysight.app.ui.theme.ForestCardBorder
 import com.moneysight.app.ui.theme.ForestSurface
+import com.moneysight.app.viewmodel.CategoryBreakdownData
 import com.moneysight.app.ui.theme.ForestSurfaceVariant
 import com.moneysight.app.ui.theme.MintGreenDark
 import com.moneysight.app.ui.theme.MintGreenPrimary
@@ -1755,6 +1765,238 @@ fun ResetAllStampsConfirmationDialog(
                 border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
             ) {
                 Text("Cancel", color = TextSecondaryOnDark)
+            }
+        }
+    )
+}
+
+/**
+ * Visual "Where Your Money Goes" Analytics Modal Dialog for Simulate Screen.
+ * Displays category/preset expense distribution with percentage progress bars.
+ */
+@Composable
+fun SimulateGraphDialog(
+    categoryBreakdowns: List<CategoryBreakdownData>,
+    totalExpenses: Double,
+    onDismiss: () -> Unit
+) {
+    val categoryColors = listOf(
+        IncomeGreen,
+        EntryTeal,
+        ChecklistPurplePrimary,
+        ExpenseRose,
+        WarningAmber,
+        MintGreenPrimary
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ForestSurface,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.PieChart,
+                    contentDescription = null,
+                    tint = ChecklistPurplePrimary,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "Where Your Money Goes",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimaryOnDark
+                    )
+                    Text(
+                        text = "Category breakdown synced with bills & presets",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondaryOnDark,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Total Expense Summary Banner
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = ChecklistSurfaceVariant)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "TOTAL EXPENSES",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = ChecklistPurpleLight,
+                                fontSize = 10.sp,
+                                letterSpacing = 0.8.sp
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextPrimaryOnDark
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(ChecklistPurpleContainer)
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "${categoryBreakdowns.size} Categories",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = ChecklistPurpleLight,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                if (categoryBreakdowns.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No expenses recorded yet",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimaryOnDark
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Add expenses on the main screen to see where your money goes.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondaryOnDark,
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    // Category Breakdown Progress Bars List
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 320.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        itemsIndexed(categoryBreakdowns, key = { _, item -> item.categoryName }) { index, item ->
+                            val color = categoryColors[index % categoryColors.size]
+
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = ForestSurfaceVariant)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp)
+                                ) {
+                                    // Category Header: Name, Count, Amount & Percentage
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(10.dp)
+                                                    .clip(CircleShape)
+                                                    .background(color)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = item.categoryName,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimaryOnDark,
+                                                fontSize = 13.sp
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = "(${item.billCount} ${if (item.billCount == 1) "bill" else "bills"})",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = TextSecondaryOnDark,
+                                                fontSize = 10.sp
+                                            )
+                                        }
+
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text(
+                                                text = "-${CurrencyUtils.formatPounds(item.totalAmount)}",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimaryOnDark,
+                                                fontSize = 13.sp
+                                            )
+                                            Text(
+                                                text = String.format(java.util.Locale.UK, "%.1f%%", item.percentage),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = color,
+                                                fontSize = 11.sp
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    // Visual Percentage Bar
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(ForestSurface)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth(fraction = (item.percentage / 100f).coerceIn(0.02f, 1f))
+                                                .height(8.dp)
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .background(color)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ChecklistPurplePrimary,
+                    contentColor = OnChecklistPurple
+                )
+            ) {
+                Text("Close", fontWeight = FontWeight.Bold)
             }
         }
     )
