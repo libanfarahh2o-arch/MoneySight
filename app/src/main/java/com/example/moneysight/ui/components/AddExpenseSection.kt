@@ -22,6 +22,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -55,9 +59,12 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moneysight.app.model.ExpenseGroup
+import com.moneysight.app.util.ExpenseCategories
 import com.moneysight.app.ui.theme.EntryBorder
 import com.moneysight.app.ui.theme.EntrySurface
 import com.moneysight.app.ui.theme.EntryTeal
@@ -398,138 +405,109 @@ fun AddExpenseSection(
         }
     }
 
-    // Full Category Presets Modal Browser Dialog
+    // "Choose a category" Grid Modal Dialog (Matching user's screenshot)
     if (showCategoryBrowser) {
         AlertDialog(
             onDismissRequest = { showCategoryBrowser = false },
             containerColor = ForestSurface,
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(24.dp),
             title = {
-                Row(
+                Box(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.GridView,
-                            contentDescription = null,
-                            tint = EntryTeal,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Expense Presets",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimaryOnDark
-                        )
-                    }
-
                     Text(
-                        text = "+ Manage",
-                        style = MaterialTheme.typography.labelSmall,
+                        text = "Choose a category",
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = EntryTeal,
-                        modifier = Modifier.clickable {
-                            showCategoryBrowser = false
-                            onOpenManagePresetsClicked()
-                        }
+                        color = TextPrimaryOnDark,
+                        fontSize = 18.sp
                     )
                 }
             },
             text = {
-                if (activeCategories.isEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "No active presets selected",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimaryOnDark
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "Manage your presets to select or add custom presets to show here.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = TextSecondaryOnDark,
-                            fontSize = 13.sp
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = {
-                                showCategoryBrowser = false
-                                onOpenManagePresetsClicked()
-                            },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = EntryTeal,
-                                contentColor = OnEntryTeal
-                            )
-                        ) {
-                            Text("Manage Presets", fontWeight = FontWeight.Bold)
-                        }
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 380.dp),
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 420.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 4-Column Grid of Vibrant Category Circle Icons
+                    val gridPresets = ExpenseCategories.categoryGridPresets
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(4),
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        items(activeCategories, key = { it.name }) { category ->
-                            Column {
+                        items(gridPresets, key = { it.id }) { preset ->
+                            Column(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        onDescriptionChanged(preset.title)
+                                        showCategoryBrowser = false
+                                    }
+                                    .padding(vertical = 4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(52.dp)
+                                        .clip(CircleShape)
+                                        .background(preset.color),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                                        contentDescription = preset.title,
+                                        tint = androidx.compose.ui.graphics.Color.White,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
                                 Text(
-                                    text = category.name,
+                                    text = preset.title,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = EntryTeal,
-                                    letterSpacing = 0.8.sp
+                                    color = TextPrimaryOnDark,
+                                    fontSize = 11.sp,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    category.items.forEach { item ->
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(ForestSurfaceVariant)
-                                                .clickable {
-                                                    onDescriptionChanged(item)
-                                                    showCategoryBrowser = false
-                                                }
-                                                .padding(horizontal = 12.dp, vertical = 10.dp)
-                                        ) {
-                                            Text(
-                                                text = item,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = TextPrimaryOnDark,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = { showCategoryBrowser = false },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = EntryTeal,
-                        contentColor = OnEntryTeal
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Close", fontWeight = FontWeight.Bold)
+                    Button(
+                        onClick = { showCategoryBrowser = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = EntryTeal,
+                            contentColor = OnEntryTeal
+                        )
+                    ) {
+                        Text(
+                            text = "Done",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                    }
                 }
             }
         )
