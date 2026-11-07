@@ -525,6 +525,13 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     private val _dueDateInput = MutableStateFlow("")
     val dueDateInput: StateFlow<String> = _dueDateInput.asStateFlow()
 
+    private val _selectedCategoryForNewExpense = MutableStateFlow("Expenses")
+    val selectedCategoryForNewExpense: StateFlow<String> = _selectedCategoryForNewExpense.asStateFlow()
+
+    fun selectCategoryForNewExpense(category: String) {
+        _selectedCategoryForNewExpense.value = category
+    }
+
     private val _isSubmitting = MutableStateFlow(false)
     val isSubmitting: StateFlow<Boolean> = _isSubmitting.asStateFlow()
 
@@ -575,6 +582,13 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _editDueDateInput = MutableStateFlow("")
     val editDueDateInput: StateFlow<String> = _editDueDateInput.asStateFlow()
+
+    private val _editCategoryInput = MutableStateFlow("Expenses")
+    val editCategoryInput: StateFlow<String> = _editCategoryInput.asStateFlow()
+
+    fun onEditCategoryInputChanged(category: String) {
+        _editCategoryInput.value = category
+    }
 
     private val _pendingOverbudgetEdit = MutableStateFlow<Expense?>(null)
     val pendingOverbudgetEdit: StateFlow<Expense?> = _pendingOverbudgetEdit.asStateFlow()
@@ -881,12 +895,14 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         val groupId = _selectedGroupIdForNewExpense.value
         val group = expenseGroups.value.find { it.id == groupId } ?: ExpenseGroup.DEFAULT_GENERAL
         val dueDate = _dueDateInput.value.trim()
+        val category = _selectedCategoryForNewExpense.value.ifBlank { "Expenses" }
 
         val newExpense = Expense(
             description = description,
             amount = amount,
             groupId = group.id,
             groupName = group.name,
+            category = category,
             dueDate = dueDate
         )
 
@@ -919,6 +935,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _descriptionInput.value = ""
         _amountInput.value = ""
         _dueDateInput.value = ""
+        _selectedCategoryForNewExpense.value = "Expenses"
     }
 
     // Main Page Income Actions
@@ -1022,6 +1039,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _editGroupIdInput.value = expense.groupId
         _editNotesInput.value = expense.notes
         _editDueDateInput.value = expense.dueDate
+        _editCategoryInput.value = if (expense.category.isNotBlank()) expense.category else "Expenses"
     }
 
     fun dismissEditDialog() {
@@ -1064,6 +1082,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             amount = newAmount,
             groupId = group.id,
             groupName = group.name,
+            category = _editCategoryInput.value.ifBlank { "Expenses" },
             notes = _editNotesInput.value.trim(),
             dueDate = _editDueDateInput.value.trim()
         )

@@ -65,11 +65,13 @@ import com.moneysight.app.ui.theme.IncomeGreen
 import com.moneysight.app.ui.theme.OnChecklistPurple
 import com.moneysight.app.ui.theme.OnEntryTeal
 import com.moneysight.app.ui.theme.ThemeMode
+import com.moneysight.app.util.ExpenseCategories
 import com.moneysight.app.util.ExpenseCategory
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -794,12 +796,14 @@ fun EditExpenseDialog(
     amountInput: String,
     notesInput: String = "",
     dueDateInput: String = "",
+    selectedCategory: String = "Expenses",
     selectedGroupId: String,
     groups: List<ExpenseGroup>,
     onDescriptionChanged: (String) -> Unit,
     onAmountChanged: (String) -> Unit,
     onNotesChanged: (String) -> Unit = {},
     onDueDateChanged: (String) -> Unit = {},
+    onCategoryChanged: (String) -> Unit = {},
     onGroupIdChanged: (String) -> Unit,
     onConfirm: () -> Unit,
     onDelete: (() -> Unit)? = null,
@@ -827,6 +831,42 @@ fun EditExpenseDialog(
         },
         text = {
             Column {
+                // Category Choice Row
+                Text(
+                    text = "Category Preset:",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondaryOnDark,
+                    fontSize = 11.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    ExpenseCategories.categoryGridPresets.forEach { preset ->
+                        val isSelected = selectedCategory.equals(preset.title, ignoreCase = true)
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(if (isSelected) preset.color else ForestSurfaceVariant)
+                                .clickable { onCategoryChanged(preset.title) }
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = preset.title,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) Color.White else TextPrimaryOnDark,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 // Group Choice Chips
                 Text(
                     text = "Group / Person:",

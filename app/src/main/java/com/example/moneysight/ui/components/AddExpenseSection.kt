@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -83,6 +84,7 @@ fun AddExpenseSection(
     descriptionInput: String,
     amountInput: String,
     dueDateInput: String = "",
+    selectedCategory: String = "Expenses",
     selectedGroupId: String,
     groups: List<ExpenseGroup>,
     activeCategories: List<ExpenseCategory>,
@@ -92,6 +94,7 @@ fun AddExpenseSection(
     onDescriptionChanged: (String) -> Unit,
     onAmountChanged: (String) -> Unit,
     onDueDateChanged: (String) -> Unit = {},
+    onSelectCategoryChanged: (String) -> Unit = {},
     onSelectGroup: (String) -> Unit,
     onOpenManageGroupsClicked: () -> Unit,
     onOpenManagePresetsClicked: () -> Unit,
@@ -139,27 +142,38 @@ fun AddExpenseSection(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (isExpanded) {
-                        // Browse All Categories Presets Button
+                        // Selected Category Preset Button
+                        val presetItem = ExpenseCategories.getPresetForCategory(selectedCategory)
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(EntryTealContainer)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(presetItem.color.copy(alpha = 0.25f))
+                                .border(1.dp, presetItem.color.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
                                 .clickable { showCategoryBrowser = true }
-                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                                .padding(horizontal = 8.dp, vertical = 5.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.GridView,
-                                    contentDescription = "Browse Categories",
-                                    tint = EntryTeal,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(CircleShape)
+                                        .background(presetItem.color),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = ExpenseCategories.getCategoryIcon(presetItem.iconName),
+                                        contentDescription = presetItem.title,
+                                        tint = androidx.compose.ui.graphics.Color.White,
+                                        modifier = Modifier.size(10.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(5.dp))
                                 Text(
-                                    text = "Presets",
+                                    text = presetItem.title,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = EntryTeal
+                                    color = TextPrimaryOnDark,
+                                    fontSize = 11.sp
                                 )
                             }
                         }
@@ -445,7 +459,7 @@ fun AddExpenseSection(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
                                     .clickable {
-                                        onDescriptionChanged(preset.title)
+                                        onSelectCategoryChanged(preset.title)
                                         showCategoryBrowser = false
                                     }
                                     .padding(vertical = 4.dp),

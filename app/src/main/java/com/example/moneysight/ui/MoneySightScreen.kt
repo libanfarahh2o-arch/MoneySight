@@ -157,7 +157,9 @@ fun MoneySightScreen(
     val editGroupIdInput by viewModel.editGroupIdInput.collectAsStateWithLifecycle()
     val editNotesInput by viewModel.editNotesInput.collectAsStateWithLifecycle()
     val editDueDateInput by viewModel.editDueDateInput.collectAsStateWithLifecycle()
+    val editCategoryInput by viewModel.editCategoryInput.collectAsStateWithLifecycle()
     val dueDateInput by viewModel.dueDateInput.collectAsStateWithLifecycle()
+    val selectedCategoryForNewExpense by viewModel.selectedCategoryForNewExpense.collectAsStateWithLifecycle()
     val pendingOverbudgetEdit by viewModel.pendingOverbudgetEdit.collectAsStateWithLifecycle()
     val expenseToDelete by viewModel.expenseToDelete.collectAsStateWithLifecycle()
 
@@ -266,6 +268,7 @@ fun MoneySightScreen(
                     descriptionInput = descriptionInput,
                     amountInput = amountInput,
                     dueDateInput = dueDateInput,
+                    selectedCategory = selectedCategoryForNewExpense,
                     selectedGroupId = selectedGroupIdForNewExpense,
                     groups = expenseGroups,
                     activeCategories = activeCategories,
@@ -275,6 +278,7 @@ fun MoneySightScreen(
                     onDescriptionChanged = { viewModel.onDescriptionChanged(it) },
                     onAmountChanged = { viewModel.onAmountChanged(it) },
                     onDueDateChanged = { viewModel.onDueDateInputChanged(it) },
+                    onSelectCategoryChanged = { viewModel.selectCategoryForNewExpense(it) },
                     onSelectGroup = { viewModel.selectGroupForNewExpense(it) },
                     onOpenManageGroupsClicked = { viewModel.openManageGroupsDialog() },
                     onOpenManagePresetsClicked = { viewModel.openSettingsDialog() },
@@ -780,19 +784,21 @@ fun MoneySightScreen(
         )
     }
 
-    // Edit Expense Dialog with Group Selector, Notes, Due Date, and Delete Option
+    // Edit Expense Dialog with Category Preset, Group Selector, Notes, Due Date, and Delete Option
     expenseToEdit?.let {
         EditExpenseDialog(
             descriptionInput = editDescriptionInput,
             amountInput = editAmountInput,
             notesInput = editNotesInput,
             dueDateInput = editDueDateInput,
+            selectedCategory = editCategoryInput,
             selectedGroupId = editGroupIdInput,
             groups = expenseGroups,
             onDescriptionChanged = { viewModel.onEditDescriptionChanged(it) },
             onAmountChanged = { viewModel.onEditAmountChanged(it) },
             onNotesChanged = { viewModel.onEditNotesChanged(it) },
             onDueDateChanged = { viewModel.onEditDueDateInputChanged(it) },
+            onCategoryChanged = { viewModel.onEditCategoryInputChanged(it) },
             onGroupIdChanged = { viewModel.onEditGroupIdChanged(it) },
             onConfirm = { viewModel.saveEditExpenseSubmitted() },
             onDelete = {

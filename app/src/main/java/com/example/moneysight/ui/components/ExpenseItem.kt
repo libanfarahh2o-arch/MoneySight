@@ -53,6 +53,7 @@ import com.moneysight.app.ui.theme.IncomeGreen
 import com.moneysight.app.ui.theme.IncomeGreenContainer
 import com.moneysight.app.ui.theme.TextPrimaryOnDark
 import com.moneysight.app.ui.theme.TextSecondaryOnDark
+import com.moneysight.app.util.ExpenseCategories
 import com.moneysight.app.ui.theme.WarningAmber
 import com.moneysight.app.ui.theme.WarningRed
 import com.moneysight.app.util.CurrencyUtils
@@ -98,18 +99,20 @@ fun ExpenseItem(
                     verticalAlignment = Alignment.Top,
                     modifier = Modifier.weight(1f)
                 ) {
+                    val presetCategory = ExpenseCategories.getPresetForCategory(expense.category)
+
                     Box(
                         modifier = Modifier
                             .offset(y = (-1).dp)
-                            .size(22.dp)
+                            .size(23.dp)
                             .clip(CircleShape)
-                            .background(if (expense.isStamped) IncomeGreenContainer else ExpenseRoseContainer),
+                            .background(if (expense.isStamped) IncomeGreenContainer else presetCategory.color.copy(alpha = 0.9f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (expense.isStamped) Icons.Default.Verified else Icons.Default.Receipt,
-                            contentDescription = null,
-                            tint = if (expense.isStamped) IncomeGreen else ExpenseRose,
+                            imageVector = if (expense.isStamped) Icons.Default.Verified else ExpenseCategories.getCategoryIcon(presetCategory.iconName),
+                            contentDescription = presetCategory.title,
+                            tint = if (expense.isStamped) IncomeGreen else Color.White,
                             modifier = Modifier.size(13.dp)
                         )
                     }

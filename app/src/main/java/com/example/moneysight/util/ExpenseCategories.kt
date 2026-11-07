@@ -131,6 +131,15 @@ object ExpenseCategories {
     }
 
     /**
+     * Finds the PresetCategoryItem for a category name (e.g., "Gifts", "Groceries", "Bills").
+     */
+    fun getPresetForCategory(categoryName: String): PresetCategoryItem {
+        return categoryGridPresets.find {
+            it.title.equals(categoryName, ignoreCase = true)
+        } ?: categoryGridPresets.find { it.id == "expenses" } ?: categoryGridPresets.first()
+    }
+
+    /**
      * Determines which category an expense description belongs to.
      */
     fun getCategoryForExpense(description: String): String {
