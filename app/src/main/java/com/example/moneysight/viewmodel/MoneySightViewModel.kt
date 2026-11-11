@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.moneysight.app.data.MoneySightRepository
 import com.moneysight.app.model.Expense
 import com.moneysight.app.model.ExpenseGroup
+import com.moneysight.app.model.ExpenseListInfo
 import com.moneysight.app.model.IncomeSource
 import com.moneysight.app.ui.theme.ThemeMode
 import com.moneysight.app.util.CurrencyUtils
@@ -174,11 +175,60 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = 0.0
     )
 
-    val expenses: StateFlow<List<Expense>> = repository.expensesFlow.stateIn(
+    val activeListId: StateFlow<String> = repository.activeListIdFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = "current"
+    )
+
+    val expenseLists: StateFlow<List<ExpenseListInfo>> = repository.expenseListsFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = listOf(ExpenseListInfo("current", "This Month"))
+    )
+
+    val expenses: StateFlow<List<Expense>> = combine(
+        repository.expensesFlow,
+        activeListId
+    ) { allExpenses, currentListId ->
+        allExpenses.filter { expense ->
+            expense.listId == currentListId || (currentListId == "current" && (expense.listId.isBlank() || expense.listId == "current"))
+        }
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
+
+    private val _showExpenseListsDialog = MutableStateFlow(false)
+    val showExpenseListsDialog: StateFlow<Boolean> = _showExpenseListsDialog.asStateFlow()
+
+    fun openExpenseListsDialog() {
+        _showExpenseListsDialog.value = true
+    }
+
+    fun dismissExpenseListsDialog() {
+        _showExpenseListsDialog.value = false
+    }
+
+    fun selectExpenseList(listId: String) {
+        viewModelScope.launch {
+            repository.setActiveListId(listId)
+        }
+    }
+
+    fun createNextMonthList(listName: String = "Next Month") {
+        viewModelScope.launch {
+            repository.createNextMonthList(listName, activeListId.value)
+            _showExpenseListsDialog.value = false
+        }
+    }
+
+    fun deleteExpenseList(listId: String) {
+        viewModelScope.launch {
+            repository.deleteExpenseList(listId)
+        }
+    }
 
     val totalExpenses: StateFlow<Double> = expenses.map { list ->
         list.sumOf { it.amount }
@@ -479,6 +529,13 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _dueDateInput = MutableStateFlow("")
     val dueDateInput: StateFlow<String> = _dueDateInput.asStateFlow()
+
+    private val _selectedCategoryForNewExpense = MutableStateFlow("General")
+    val selectedCategoryForNewExpense: StateFlow<String> = _selectedCategoryForNewExpense.asStateFlow()
+
+    fun selectCategoryForNewExpense(category: String) {
+        _selectedCategoryForNewExpense.value = category
+    }
 
     private val _isSubmitting = MutableStateFlow(false)
     val isSubmitting: StateFlow<Boolean> = _isSubmitting.asStateFlow()
@@ -831,7 +888,8 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             amount = amount,
             groupId = group.id,
             groupName = group.name,
-            dueDate = dueDate
+            dueDate = dueDate,
+            listId = activeListId.value
         )
 
         if (amount > currentRemaining) {
@@ -863,6 +921,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _descriptionInput.value = ""
         _amountInput.value = ""
         _dueDateInput.value = ""
+        _selectedCategoryForNewExpense.value = "General"
     }
 
     // Main Page Income Actions
@@ -1052,7 +1111,54 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    // Graph / Analytics Breakdown State
+    val categoryBreakdownList: StateFlow<List<CategoryBreakdownData>> = combine(
+        expenses,
+        totalExpenses
+    ) { list, total ->
+        if (list.isEmpty() || total <= 0) {
+            emptyList()
+        } else {
+            val grouped = list.groupBy { expense ->
+                ExpenseCategories.getCategoryForExpense(expense.description)
+            }
+            grouped.map { (catName, catExpenses) ->
+                val catTotal = catExpenses.sumOf { it.amount }
+                val pct = ((catTotal / total) * 100.0).toFloat()
+                CategoryBreakdownData(
+                    categoryName = catName,
+                    billCount = catExpenses.size,
+                    totalAmount = catTotal,
+                    percentage = pct
+                )
+            }.sortedByDescending { it.totalAmount }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    private val _showSimulateGraphDialog = MutableStateFlow(false)
+    val showSimulateGraphDialog: StateFlow<Boolean> = _showSimulateGraphDialog.asStateFlow()
+
+    fun openSimulateGraphDialog() {
+        _showSimulateGraphDialog.value = true
+    }
+
+    fun dismissSimulateGraphDialog() {
+        _showSimulateGraphDialog.value = false
+    }
+
     private fun String?.isNullBLankOrAll(): Boolean {
         return this.isNullOrBlank() || this.equals("ALL", ignoreCase = true)
     }
 }
+
+data class CategoryBreakdownData(
+    val categoryName: String,
+    val billCount: Int,
+    val totalAmount: Double,
+    val percentage: Float
+)
+

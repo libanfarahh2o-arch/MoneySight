@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -44,6 +45,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +53,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import com.moneysight.app.ui.components.SimulateGraphDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -113,6 +116,7 @@ fun BillChecklistScreen(
 
     val paidExpensesTotal by viewModel.paidExpensesTotal.collectAsStateWithLifecycle()
     val unpaidExpensesTotal by viewModel.unpaidExpensesTotal.collectAsStateWithLifecycle()
+    val totalExpenses by viewModel.totalExpenses.collectAsStateWithLifecycle()
     val paidExpensesCount by viewModel.paidExpensesCount.collectAsStateWithLifecycle()
     val unpaidExpensesCount by viewModel.unpaidExpensesCount.collectAsStateWithLifecycle()
     val stampedExpensesCount by viewModel.stampedExpensesCount.collectAsStateWithLifecycle()
@@ -134,6 +138,8 @@ fun BillChecklistScreen(
     val isGroupedChecklistMode by viewModel.isGroupedChecklistMode.collectAsStateWithLifecycle()
 
     val showResetAllBillsDialog by viewModel.showResetAllBillsDialog.collectAsStateWithLifecycle()
+    val showSimulateGraphDialog by viewModel.showSimulateGraphDialog.collectAsStateWithLifecycle()
+    val categoryBreakdowns by viewModel.categoryBreakdownList.collectAsStateWithLifecycle()
 
     // Map tracking expanded state for each group (collapsed by default)
     val expandedGroupsMap = remember { mutableStateMapOf<String, Boolean>() }
@@ -148,6 +154,28 @@ fun BillChecklistScreen(
                 })
             },
         containerColor = ChecklistDarkBackground,
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { viewModel.openSimulateGraphDialog() },
+                containerColor = ChecklistPurplePrimary,
+                contentColor = OnChecklistPurple,
+                shape = RoundedCornerShape(20.dp),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.PieChart,
+                        contentDescription = "Where Your Money Goes Graph",
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Graph",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+            )
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -177,6 +205,13 @@ fun BillChecklistScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.openSimulateGraphDialog() }) {
+                        Icon(
+                            imageVector = Icons.Default.PieChart,
+                            contentDescription = "Where Your Money Goes Graph",
+                            tint = ChecklistPurplePrimary
+                        )
+                    }
                     IconButton(onClick = { viewModel.openResetAllBillsDialog() }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -870,6 +905,15 @@ fun BillChecklistScreen(
                     Text("Cancel", color = TextSecondaryOnDark)
                 }
             }
+        )
+    }
+
+    // Simulate Category Breakdown Graph Dialog
+    if (showSimulateGraphDialog) {
+        SimulateGraphDialog(
+            categoryBreakdowns = categoryBreakdowns,
+            totalExpenses = totalExpenses,
+            onDismiss = { viewModel.dismissSimulateGraphDialog() }
         )
     }
 }

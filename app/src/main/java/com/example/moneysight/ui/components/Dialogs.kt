@@ -20,15 +20,34 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
+import com.moneysight.app.model.ExpenseListInfo
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import com.moneysight.app.viewmodel.CategoryBreakdownData
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsBrightness
@@ -56,14 +75,23 @@ import com.moneysight.app.ui.theme.EntryTealContainer
 import com.moneysight.app.ui.theme.IncomeGreen
 import com.moneysight.app.ui.theme.OnEntryTeal
 import com.moneysight.app.ui.theme.ThemeMode
+import com.moneysight.app.util.ExpenseCategories
 import com.moneysight.app.util.ExpenseCategory
+import com.moneysight.app.util.PresetCategoryItem
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moneysight.app.model.Expense
@@ -776,7 +804,7 @@ fun OverbudgetWarningDialog(
 }
 
 /**
- * Edit Expense Dialog.
+ * Edit Expense Dialog with 2 top interactive boxes: Category & Group (opening pop-up pickers when clicked).
  */
 @Composable
 fun EditExpenseDialog(
@@ -784,21 +812,42 @@ fun EditExpenseDialog(
     amountInput: String,
     notesInput: String = "",
     dueDateInput: String = "",
+    selectedCategory: String = "General",
     selectedGroupId: String,
     groups: List<ExpenseGroup>,
     onDescriptionChanged: (String) -> Unit,
     onAmountChanged: (String) -> Unit,
     onNotesChanged: (String) -> Unit = {},
     onDueDateChanged: (String) -> Unit = {},
+    onCategoryChanged: (String) -> Unit = {},
     onGroupIdChanged: (String) -> Unit,
     onConfirm: () -> Unit,
     onDelete: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
+    var showCategoryPopup by remember { mutableStateOf(false) }
+    var showGroupPopup by remember { mutableStateOf(false) }
+
+    val selectedGroup = remember(selectedGroupId, groups) {
+        groups.find { it.id == selectedGroupId } ?: ExpenseGroup.DEFAULT_GENERAL
+    }
+
+    val currentCategoryTitle = remember(descriptionInput, selectedCategory) {
+        if (selectedCategory.isNotBlank() && !selectedCategory.equals("General", ignoreCase = true)) {
+            selectedCategory
+        } else {
+            ExpenseCategories.getCategoryForExpense(descriptionInput)
+        }
+    }
+
+    val selectedPreset = remember(currentCategoryTitle) {
+        ExpenseCategories.getPresetForCategory(currentCategoryTitle)
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = ForestSurface,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         icon = {
             Icon(
                 imageVector = Icons.Default.Edit,
@@ -816,48 +865,150 @@ fun EditExpenseDialog(
             )
         },
         text = {
-            Column {
-                // Group Choice Chips
-                Text(
-                    text = "Group / Person:",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondaryOnDark,
-                    fontSize = 11.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 2 Boxes on Top: Category Box & Group Box
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    groups.forEach { group ->
-                        val isSelected = selectedGroupId == group.id
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(if (isSelected) MintGreenPrimary else ForestSurfaceVariant)
-                                .clickable { onGroupIdChanged(group.id) }
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                    // Box 1: Category Box
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(58.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(ForestSurfaceVariant)
+                            .clickable { showCategoryPopup = true }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Text(
-                                text = group.name,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = if (isSelected) OnMintGreen.let { FontWeight.Bold } else FontWeight.Medium,
-                                color = if (isSelected) OnMintGreen else TextPrimaryOnDark,
-                                fontSize = 11.sp
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Category",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = TextSecondaryOnDark,
+                                    fontSize = 11.sp
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = TextPrimaryOnDark,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(2.dp))
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(18.dp)
+                                        .clip(CircleShape)
+                                        .background(selectedPreset.color),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = ExpenseCategories.getCategoryIcon(selectedPreset.iconName),
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(11.dp)
+                                    )
+                                }
+
+                                Text(
+                                    text = selectedPreset.title,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimaryOnDark,
+                                    fontSize = 13.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+
+                    // Box 2: Group Box
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(58.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(ForestSurfaceVariant)
+                            .clickable { showGroupPopup = true }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Group",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = TextSecondaryOnDark,
+                                    fontSize = 11.sp
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = TextPrimaryOnDark,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(2.dp))
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Groups,
+                                    contentDescription = null,
+                                    tint = MintGreenPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+
+                                Text(
+                                    text = selectedGroup.name,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimaryOnDark,
+                                    fontSize = 13.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedTextField(
                     value = descriptionInput,
                     onValueChange = onDescriptionChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Description", color = TextSecondaryOnDark) },
+                    label = { Text("Description / Bill Name", color = TextSecondaryOnDark) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -870,8 +1021,6 @@ fun EditExpenseDialog(
                         cursorColor = MintGreenPrimary
                     )
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = amountInput,
@@ -898,8 +1047,6 @@ fun EditExpenseDialog(
                     )
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 OutlinedTextField(
                     value = dueDateInput,
                     onValueChange = onDueDateChanged,
@@ -918,8 +1065,6 @@ fun EditExpenseDialog(
                         cursorColor = MintGreenPrimary
                     )
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = notesInput,
@@ -991,6 +1136,189 @@ fun EditExpenseDialog(
             }
         }
     )
+
+    // Category Selector Pop-up
+    if (showCategoryPopup) {
+        AlertDialog(
+            onDismissRequest = { showCategoryPopup = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(28.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.GridView,
+                        contentDescription = null,
+                        tint = Color(0xFF00796B),
+                        modifier = Modifier.size(26.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Select Category Preset",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF002920)
+                    )
+                }
+            },
+            text = {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 380.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(ExpenseCategories.categoryGridPresets, key = { it.title }) { preset ->
+                        val isSelected = selectedPreset.title.equals(preset.title, ignoreCase = true)
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(if (isSelected) Color(0xFFD6F2EA) else Color.Transparent)
+                                .clickable {
+                                    onCategoryChanged(preset.title)
+                                    showCategoryPopup = false
+                                }
+                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(46.dp)
+                                            .clip(CircleShape)
+                                            .background(preset.color),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                                            contentDescription = preset.title,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .align(Alignment.BottomEnd)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF00796B)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                    text = preset.title,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1F2D2A),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showCategoryPopup = false },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF00897B),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Close", fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
+    // Group Selector Pop-up
+    if (showGroupPopup) {
+        AlertDialog(
+            onDismissRequest = { showGroupPopup = false },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(24.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Groups,
+                        contentDescription = null,
+                        tint = Color(0xFF00796B),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Assign to Group",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF002920)
+                    )
+                }
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(groups, key = { it.id }) { group ->
+                        val isSelected = selectedGroupId == group.id
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) Color(0xFFD6F2EA) else Color(0xFFE2ECE8))
+                                .clickable {
+                                    onGroupIdChanged(group.id)
+                                    showGroupPopup = false
+                                }
+                                .padding(horizontal = 14.dp, vertical = 12.dp)
+                        ) {
+                            Text(
+                                text = group.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = Color(0xFF0B2822)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showGroupPopup = false },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF00897B),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Close", fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
 }
 
 /**
@@ -1364,7 +1692,7 @@ fun SettingsDialog(
 }
 
 /**
- * Dialog to Manage Expense Presets (Selecting built-in presets & adding/deleting custom extra presets).
+ * Dialog to Manage Expense Presets (Selecting 42 built-in visual category presets & custom extra presets).
  */
 @Composable
 fun ManagePresetsDialog(
@@ -1380,34 +1708,43 @@ fun ManagePresetsDialog(
     onDeselectAllClicked: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val totalAvailable = combinedCategories.sumOf { it.items.size }
+    val totalAvailable = ExpenseCategories.categoryGridPresets.size + customPresets.size
     val totalSelected = selectedPresets.size
+
+    val allPresetItems = remember(customPresets) {
+        val builtIn = ExpenseCategories.categoryGridPresets
+        val customItems = customPresets.map { customTitle ->
+            ExpenseCategories.getPresetForCategory(customTitle)
+        }
+        (builtIn + customItems).distinctBy { it.title }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = ForestSurface,
-        shape = RoundedCornerShape(20.dp),
+        containerColor = Color.White,
+        shape = RoundedCornerShape(28.dp),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.GridView,
                     contentDescription = null,
-                    tint = EntryTeal,
+                    tint = Color(0xFF00796B),
                     modifier = Modifier.size(28.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(
                         text = "Manage Presets",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimaryOnDark
+                        color = Color(0xFF002920)
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "Select presets to show in 'Where is your money going?'",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondaryOnDark,
-                        fontSize = 11.sp
+                        color = Color(0xFF4B635C),
+                        fontSize = 11.5.sp
                     )
                 }
             }
@@ -1427,51 +1764,44 @@ fun ManagePresetsDialog(
                         placeholder = {
                             Text(
                                 "Add custom preset...",
-                                color = TextMutedOnDark.copy(alpha = 0.6f),
+                                color = Color(0xFF6A877E).copy(alpha = 0.8f),
                                 fontSize = 13.sp
                             )
                         },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { onAddCustomPresetClicked() }),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = ForestSurfaceVariant,
-                            unfocusedContainerColor = ForestSurfaceVariant,
-                            focusedBorderColor = EntryTeal,
-                            unfocusedBorderColor = ForestCardBorder,
-                            focusedTextColor = TextPrimaryOnDark,
-                            unfocusedTextColor = TextPrimaryOnDark,
-                            cursorColor = EntryTeal
+                            focusedContainerColor = Color(0xFFE2F0EC),
+                            unfocusedContainerColor = Color(0xFFE2F0EC),
+                            focusedBorderColor = Color(0xFF00796B),
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedTextColor = Color(0xFF002920),
+                            unfocusedTextColor = Color(0xFF002920),
+                            cursorColor = Color(0xFF00796B)
                         )
                     )
 
                     Button(
                         onClick = onAddCustomPresetClicked,
                         enabled = customPresetInput.isNotBlank(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = EntryTeal,
-                            contentColor = OnEntryTeal,
-                            disabledContainerColor = ForestCardBorder,
-                            disabledContentColor = TextSecondaryOnDark
-                        )
+                            containerColor = Color(0xFFC7E5DC),
+                            contentColor = Color(0xFF004D40),
+                            disabledContainerColor = Color(0xFFE2F0EC),
+                            disabledContentColor = Color(0xFF6A877E)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Add Extra",
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Extra", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
+                        Text("+ Extra", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                // Control Row: Select All / Deselect All / Count
+                // Control Row: Count / Select All / Deselect All
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -1481,17 +1811,17 @@ fun ManagePresetsDialog(
                         text = "$totalSelected / $totalAvailable selected",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = EntryTeal,
-                        fontSize = 11.sp
+                        color = Color(0xFF00796B),
+                        fontSize = 12.sp
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         Text(
                             text = "Select All",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = EntryTeal,
-                            fontSize = 11.sp,
+                            color = Color(0xFF00796B),
+                            fontSize = 12.sp,
                             modifier = Modifier.clickable { onSelectAllClicked() }
                         )
 
@@ -1499,85 +1829,102 @@ fun ManagePresetsDialog(
                             text = "Deselect All",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = TextSecondaryOnDark,
-                            fontSize = 11.sp,
+                            color = Color(0xFF4B635C),
+                            fontSize = 12.sp,
                             modifier = Modifier.clickable { onDeselectAllClicked() }
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                // Scrollable List of Categories & Items
-                LazyColumn(
+                // 4-Column Grid of 42 Category Circle Presets
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 440.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(combinedCategories, key = { it.name }) { category ->
-                        Column {
-                            Text(
-                                text = category.name,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = EntryTeal,
-                                letterSpacing = 0.8.sp
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
+                    items(allPresetItems, key = { it.title }) { preset ->
+                        val isSelected = selectedPresets.contains(preset.title)
+                        val isCustom = customPresets.any { it.equals(preset.title, ignoreCase = true) }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(if (isSelected) Color(0xFFD6F2EA) else Color.Transparent)
+                                .clickable { onTogglePresetSelected(preset.title) }
+                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                category.items.forEach { item ->
-                                    val isSelected = selectedPresets.contains(item)
-                                    val isCustom = customPresets.any { it.equals(item, ignoreCase = true) }
-
-                                    Row(
+                                Box(
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    // Main Vibrant Circular Icon
+                                    Box(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(ForestSurfaceVariant)
-                                            .clickable { onTogglePresetSelected(item) }
-                                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                            .size(48.dp)
+                                            .clip(CircleShape)
+                                            .background(preset.color),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Checkbox(
-                                                checked = isSelected,
-                                                onCheckedChange = { onTogglePresetSelected(item) },
-                                                colors = CheckboxDefaults.colors(
-                                                    checkedColor = EntryTeal,
-                                                    uncheckedColor = TextSecondaryOnDark,
-                                                    checkmarkColor = OnEntryTeal
-                                                )
-                                            )
-                                            Text(
-                                                text = item,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = if (isSelected) TextPrimaryOnDark else TextMutedOnDark,
-                                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
-                                                fontSize = 13.sp
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                                            contentDescription = preset.title,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
 
-                                        if (isCustom) {
-                                            IconButton(
-                                                onClick = { onRemoveCustomPresetClicked(item) },
-                                                modifier = Modifier.size(28.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.DeleteOutline,
-                                                    contentDescription = "Delete Extra Preset",
-                                                    tint = WarningRed,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            }
+                                    // Small Checkmark Badge overlay at bottom right when selected
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .align(Alignment.BottomEnd)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF00796B)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(12.dp)
+                                            )
                                         }
                                     }
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = preset.title,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1F2D2A),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = 11.sp
+                                )
+
+                                if (isCustom) {
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Delete",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = WarningRed,
+                                        fontSize = 9.sp,
+                                        modifier = Modifier.clickable { onRemoveCustomPresetClicked(preset.title) }
+                                    )
                                 }
                             }
                         }
@@ -1588,13 +1935,14 @@ fun ManagePresetsDialog(
         confirmButton = {
             Button(
                 onClick = onDismiss,
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = EntryTeal,
-                    contentColor = OnEntryTeal
-                )
+                    containerColor = Color(0xFF00897B),
+                    contentColor = Color.White
+                ),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
             ) {
-                Text("Done", fontWeight = FontWeight.Bold)
+                Text("Done", fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
     )
@@ -1759,3 +2107,773 @@ fun ResetAllStampsConfirmationDialog(
         }
     )
 }
+
+/**
+ * Visual "Where Your Money Goes" Analytics Modal Dialog for Preview / Simulate Screen.
+ * Displays interactive 3-tab graphs: Pie Chart (Donut), Bar Graph, and Breakdown list.
+ */
+@Composable
+fun SimulateGraphDialog(
+    categoryBreakdowns: List<CategoryBreakdownData>,
+    totalExpenses: Double,
+    onDismiss: () -> Unit
+) {
+    var selectedTab by remember { mutableStateOf(0) } // 0: Pie Chart, 1: Bar Graph, 2: Breakdown
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(28.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFEFE8FC)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PieChart,
+                        contentDescription = null,
+                        tint = Color(0xFF7B61FF),
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = "Where Your Money Goes",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1F1F24),
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Category breakdown synced with live expenses",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF6E6D7A),
+                        fontSize = 11.5.sp
+                    )
+                }
+            }
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Total Expenses Summary Banner
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF0EDF9))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "TOTAL EXPENSES",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF7B61FF),
+                                fontSize = 10.sp,
+                                letterSpacing = 0.5.sp
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF1F1F24),
+                                fontSize = 20.sp
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color.White)
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "${categoryBreakdowns.size} Categories",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF7B61FF),
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 3 Segmented Toggle Tabs (Pie Chart | Bar Graph | Breakdown)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFFEBF3EF))
+                        .padding(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Tab 1: Pie Chart
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (selectedTab == 0) Color(0xFF8E7CC3) else Color.Transparent)
+                            .clickable { selectedTab = 0 }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.PieChart,
+                                contentDescription = "Pie Chart",
+                                tint = if (selectedTab == 0) Color.White else Color(0xFF4B635C),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Pie Chart",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                color = if (selectedTab == 0) Color.White else Color(0xFF4B635C)
+                            )
+                        }
+                    }
+
+                    // Tab 2: Bar Graph
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (selectedTab == 1) Color(0xFF8E7CC3) else Color.Transparent)
+                            .clickable { selectedTab = 1 }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.BarChart,
+                                contentDescription = "Bar Graph",
+                                tint = if (selectedTab == 1) Color.White else Color(0xFF4B635C),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Bar Graph",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                color = if (selectedTab == 1) Color.White else Color(0xFF4B635C)
+                            )
+                        }
+                    }
+
+                    // Tab 3: Breakdown
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (selectedTab == 2) Color(0xFF8E7CC3) else Color.Transparent)
+                            .clickable { selectedTab = 2 }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ListAlt,
+                                contentDescription = "Breakdown",
+                                tint = if (selectedTab == 2) Color.White else Color(0xFF4B635C),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Breakdown",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                color = if (selectedTab == 2) Color.White else Color(0xFF4B635C)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                if (categoryBreakdowns.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No expenses recorded yet",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1F1F24)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Add expenses on the main screen to see where your money goes.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF6E6D7A),
+                            fontSize = 12.5.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    when (selectedTab) {
+                        0 -> {
+                            // Tab 1: Donut Pie Chart Canvas
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(200.dp)
+                                        .padding(10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                        var startAngle = -90f
+                                        val strokeWidth = 32.dp.toPx()
+                                        categoryBreakdowns.forEach { item ->
+                                            val sweepAngle = (item.percentage / 100f) * 360f
+                                            val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+                                            drawArc(
+                                                color = preset.color,
+                                                startAngle = startAngle,
+                                                sweepAngle = sweepAngle,
+                                                useCenter = false,
+                                                style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
+                                            )
+                                            startAngle += sweepAngle
+                                        }
+                                    }
+
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = "TOTAL SPENT",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF6E6D7A),
+                                            fontSize = 9.5.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color(0xFF1F1F24),
+                                            fontSize = 16.sp
+                                        )
+                                        Text(
+                                            text = "Tap a slice for details",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color(0xFF8E7CC3),
+                                            fontSize = 9.5.sp
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Scrollable Category Chips below Donut Chart
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    categoryBreakdowns.forEach { item ->
+                                        val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(Color(0xFFEBF5F0))
+                                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(18.dp)
+                                                        .clip(CircleShape)
+                                                        .background(preset.color),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                                                        contentDescription = null,
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(11.dp)
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = item.categoryName,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFF1F1F24),
+                                                    fontSize = 12.sp
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        1 -> {
+                            // Tab 2: Bar Graph
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F0))
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    val top5Categories = remember(categoryBreakdowns) {
+                                        categoryBreakdowns.take(5)
+                                    }
+                                    val maxAmount = remember(top5Categories) {
+                                        top5Categories.maxOfOrNull { it.totalAmount } ?: 1.0
+                                    }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp),
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                                        verticalAlignment = Alignment.Bottom
+                                    ) {
+                                        top5Categories.forEach { item ->
+                                            val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+                                            val barFraction = (item.totalAmount / maxAmount).toFloat().coerceIn(0.12f, 1f)
+
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Bottom,
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                // Pill Badge Amount Above Bar
+                                                Box(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(Color.White)
+                                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "£${item.totalAmount.toInt()}",
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = preset.color,
+                                                        fontSize = 10.5.sp
+                                                    )
+                                                }
+
+                                                Spacer(modifier = Modifier.height(6.dp))
+
+                                                // Vertical Bar
+                                                Box(
+                                                    modifier = Modifier
+                                                        .width(36.dp)
+                                                        .fillMaxHeight(fraction = barFraction * 0.75f)
+                                                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                                                        .background(preset.color)
+                                                )
+
+                                                Spacer(modifier = Modifier.height(8.dp))
+
+                                                // Category Icon Below Bar
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(CircleShape)
+                                                        .background(preset.color),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                                                        contentDescription = item.categoryName,
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        2 -> {
+                            // Tab 3: Breakdown List
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 340.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(categoryBreakdowns, key = { it.categoryName }) { item ->
+                                    val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F0))
+                                    ) {
+                                        Column(modifier = Modifier.padding(12.dp)) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(28.dp)
+                                                            .clip(CircleShape)
+                                                            .background(preset.color),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                                                            contentDescription = null,
+                                                            tint = Color.White,
+                                                            modifier = Modifier.size(16.dp)
+                                                        )
+                                                    }
+                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Text(
+                                                        text = item.categoryName,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFF1F1F24),
+                                                        fontSize = 13.5.sp
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        text = "(${item.billCount})",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = Color(0xFF6E6D7A),
+                                                        fontSize = 11.sp
+                                                    )
+                                                }
+
+                                                Column(horizontalAlignment = Alignment.End) {
+                                                    Text(
+                                                        text = "-${CurrencyUtils.formatPounds(item.totalAmount)}",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFF1F1F24),
+                                                        fontSize = 13.5.sp
+                                                    )
+                                                    Text(
+                                                        text = String.format(java.util.Locale.UK, "%.1f%%", item.percentage),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = preset.color,
+                                                        fontSize = 11.sp
+                                                    )
+                                                }
+                                            }
+
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(7.dp)
+                                                    .clip(RoundedCornerShape(4.dp))
+                                                    .background(Color(0xFFE0ECE6))
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth(fraction = (item.percentage / 100f).coerceIn(0.02f, 1f))
+                                                        .height(7.dp)
+                                                        .clip(RoundedCornerShape(4.dp))
+                                                        .background(preset.color)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF8E7CC3),
+                    contentColor = Color.White
+                ),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                Text("Close", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            }
+        }
+    )
+}
+
+/**
+ * Dialog to manage & switch between different Monthly Expense Lists (e.g., "This Month", "Next Month")
+ * and create fresh unstamped copies for next month's planning without losing current bills.
+ */
+@Composable
+fun ExpenseListsDialog(
+    activeListId: String,
+    expenseLists: List<ExpenseListInfo>,
+    allExpenses: List<Expense>,
+    onSelectList: (String) -> Unit,
+    onCreateNextMonthList: (String) -> Unit,
+    onDeleteList: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var newListNameInput by remember { mutableStateOf("") }
+    var showCreateInput by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ForestSurface,
+        shape = RoundedCornerShape(24.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(EntryTealContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        tint = EntryTeal,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = "Monthly Expense Lists",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimaryOnDark
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Work out next month's bills without losing this month's",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondaryOnDark,
+                        fontSize = 11.5.sp
+                    )
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // List of Available Monthly Lists
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 280.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(expenseLists, key = { it.id }) { listInfo ->
+                        val isActive = listInfo.id == activeListId
+                        val listExpenses = remember(allExpenses, listInfo.id) {
+                            allExpenses.filter { it.listId == listInfo.id || (listInfo.id == "current" && (it.listId.isBlank() || it.listId == "current")) }
+                        }
+                        val listTotal = remember(listExpenses) {
+                            listExpenses.sumOf { it.amount }
+                        }
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable {
+                                    onSelectList(listInfo.id)
+                                    onDismiss()
+                                },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isActive) EntryTealContainer else ForestSurfaceVariant
+                            ),
+                            border = BorderStroke(
+                                width = if (isActive) 1.5.dp else 1.dp,
+                                color = if (isActive) EntryTeal else ForestCardBorder
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = listInfo.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isActive) EntryTeal else TextPrimaryOnDark
+                                        )
+
+                                        if (isActive) {
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .background(EntryTeal)
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            ) {
+                                                Text(
+                                                    text = "ACTIVE",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = OnEntryTeal,
+                                                    fontSize = 9.sp
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "${listExpenses.size} bills • -${CurrencyUtils.formatPounds(listTotal)}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextSecondaryOnDark,
+                                        fontSize = 11.5.sp
+                                    )
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (listInfo.id != "current") {
+                                        IconButton(
+                                            onClick = { onDeleteList(listInfo.id) },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.DeleteOutline,
+                                                contentDescription = "Delete List",
+                                                tint = WarningRed,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (showCreateInput) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = newListNameInput,
+                            onValueChange = { newListNameInput = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("e.g. Next Month, December 2026", color = TextMutedOnDark.copy(alpha = 0.6f)) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = ForestSurfaceVariant,
+                                unfocusedContainerColor = ForestSurfaceVariant,
+                                focusedBorderColor = EntryTeal,
+                                unfocusedBorderColor = ForestCardBorder,
+                                focusedTextColor = TextPrimaryOnDark,
+                                unfocusedTextColor = TextPrimaryOnDark
+                            )
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedButton(
+                                onClick = { showCreateInput = false },
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text("Cancel", color = TextSecondaryOnDark)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    val name = newListNameInput.ifBlank { "Next Month" }
+                                    onCreateNextMonthList(name)
+                                },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = EntryTeal,
+                                    contentColor = OnEntryTeal
+                                )
+                            ) {
+                                Text("Create & Switch", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            newListNameInput = "Next Month"
+                            showCreateInput = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = EntryTeal,
+                            contentColor = OnEntryTeal
+                        ),
+                        contentPadding = PaddingValues(vertical = 12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "+ Create Next Month's Unstamped List",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.5.sp
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(12.dp),
+                border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
+            ) {
+                Text("Close", color = TextSecondaryOnDark, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
+}
+

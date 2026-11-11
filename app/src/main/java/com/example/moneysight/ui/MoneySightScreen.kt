@@ -67,6 +67,7 @@ import com.moneysight.app.ui.components.EditExpenseDialog
 import com.moneysight.app.ui.components.EditIncomeSourceDialog
 import com.moneysight.app.ui.components.ExpenseFilterBar
 import com.moneysight.app.ui.components.ExpenseItem
+import com.moneysight.app.ui.components.ExpenseListsDialog
 import com.moneysight.app.ui.components.IncomeSourcesDialog
 import com.moneysight.app.ui.components.ManageGroupsDialog
 import com.moneysight.app.ui.components.ManagePresetsDialog
@@ -150,6 +151,7 @@ fun MoneySightScreen(
     val editNotesInput by viewModel.editNotesInput.collectAsStateWithLifecycle()
     val editDueDateInput by viewModel.editDueDateInput.collectAsStateWithLifecycle()
     val dueDateInput by viewModel.dueDateInput.collectAsStateWithLifecycle()
+    val selectedCategoryForNewExpense by viewModel.selectedCategoryForNewExpense.collectAsStateWithLifecycle()
     val pendingOverbudgetEdit by viewModel.pendingOverbudgetEdit.collectAsStateWithLifecycle()
     val expenseToDelete by viewModel.expenseToDelete.collectAsStateWithLifecycle()
 
@@ -175,6 +177,11 @@ fun MoneySightScreen(
 
     // Select Bill to Edit/Delete State
     val showSelectBillToEditDialog by viewModel.showSelectBillToEditDialog.collectAsStateWithLifecycle()
+
+    // Monthly Expense Lists State
+    val activeListId by viewModel.activeListId.collectAsStateWithLifecycle()
+    val expenseLists by viewModel.expenseLists.collectAsStateWithLifecycle()
+    val showExpenseListsDialog by viewModel.showExpenseListsDialog.collectAsStateWithLifecycle()
 
     // Reset Stamp Mode to OFF when leaving main screen or when app is paused/backgrounded
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -258,6 +265,7 @@ fun MoneySightScreen(
                     descriptionInput = descriptionInput,
                     amountInput = amountInput,
                     dueDateInput = dueDateInput,
+                    selectedCategory = selectedCategoryForNewExpense,
                     selectedGroupId = selectedGroupIdForNewExpense,
                     groups = expenseGroups,
                     activeCategories = activeCategories,
@@ -267,6 +275,7 @@ fun MoneySightScreen(
                     onDescriptionChanged = { viewModel.onDescriptionChanged(it) },
                     onAmountChanged = { viewModel.onAmountChanged(it) },
                     onDueDateChanged = { viewModel.onDueDateInputChanged(it) },
+                    onSelectCategoryChanged = { viewModel.selectCategoryForNewExpense(it) },
                     onSelectGroup = { viewModel.selectGroupForNewExpense(it) },
                     onOpenManageGroupsClicked = { viewModel.openManageGroupsDialog() },
                     onOpenManagePresetsClicked = { viewModel.openSettingsDialog() },
@@ -485,7 +494,8 @@ fun MoneySightScreen(
                             onGroupSelected = { viewModel.selectGroupFilter(it) },
                             onSortOrderSelected = { viewModel.onSortOrderChanged(it) },
                             onClearFiltersClicked = { viewModel.clearExpenseFilters() },
-                            onEditBillClicked = { viewModel.openSelectBillToEditDialog() }
+                            onEditBillClicked = { viewModel.openSelectBillToEditDialog() },
+                            onOpenListsClicked = { viewModel.openExpenseListsDialog() }
                         )
                     }
                 }
@@ -723,7 +733,7 @@ fun MoneySightScreen(
         )
     }
 
-    // Edit Expense Dialog with Group Selector, Notes, Due Date, and Delete Option
+    // Edit Expense Dialog with 2 Top Boxes: Category & Group
     expenseToEdit?.let {
         EditExpenseDialog(
             descriptionInput = editDescriptionInput,
@@ -819,6 +829,19 @@ fun MoneySightScreen(
                 viewModel.startEditingExpense(expense)
             },
             onDismiss = { viewModel.dismissSelectBillToEditDialog() }
+        )
+    }
+
+    // Monthly Expense Lists Dialog
+    if (showExpenseListsDialog) {
+        ExpenseListsDialog(
+            activeListId = activeListId,
+            expenseLists = expenseLists,
+            allExpenses = expenses,
+            onSelectList = { viewModel.selectExpenseList(it) },
+            onCreateNextMonthList = { viewModel.createNextMonthList(it) },
+            onDeleteList = { viewModel.deleteExpenseList(it) },
+            onDismiss = { viewModel.dismissExpenseListsDialog() }
         )
     }
 }

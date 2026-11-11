@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
@@ -74,6 +75,7 @@ fun ExpenseFilterBar(
     onSortOrderSelected: (ExpenseSortOrder) -> Unit,
     onClearFiltersClicked: () -> Unit,
     onEditBillClicked: () -> Unit = {},
+    onOpenListsClicked: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -202,6 +204,36 @@ fun ExpenseFilterBar(
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MintGreenPrimary,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            // Create Next Month / Switch Month Lists Button
+            Box(
+                modifier = Modifier
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(EntryTealContainer)
+                    .clickable { onOpenListsClicked() }
+                    .padding(horizontal = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Monthly Lists",
+                        tint = EntryTeal,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Months",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = EntryTeal,
                         fontSize = 11.sp
                     )
                 }

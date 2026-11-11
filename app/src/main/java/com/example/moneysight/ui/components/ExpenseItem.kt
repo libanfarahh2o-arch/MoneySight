@@ -29,8 +29,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.moneysight.app.util.ExpenseCategories
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
@@ -93,24 +95,28 @@ fun ExpenseItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                // Left: Expense Icon + Description + Note Indicator
+                // Left: Group / Category Logo + Description + Note Indicator
                 Row(
                     verticalAlignment = Alignment.Top,
                     modifier = Modifier.weight(1f)
                 ) {
+                    val categoryPreset = remember(expense.description) {
+                        ExpenseCategories.getPresetForCategory(expense.description)
+                    }
+
                     Box(
                         modifier = Modifier
-                            .offset(y = (-1).dp)
-                            .size(22.dp)
+                            .offset(y = 1.dp)
+                            .size(26.dp)
                             .clip(CircleShape)
-                            .background(if (expense.isStamped) IncomeGreenContainer else ExpenseRoseContainer),
+                            .background(categoryPreset.color),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (expense.isStamped) Icons.Default.Verified else Icons.Default.Receipt,
-                            contentDescription = null,
-                            tint = if (expense.isStamped) IncomeGreen else ExpenseRose,
-                            modifier = Modifier.size(13.dp)
+                            imageVector = ExpenseCategories.getCategoryIcon(categoryPreset.iconName),
+                            contentDescription = categoryPreset.title,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
                         )
                     }
 

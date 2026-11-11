@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.moneysight.app.model.Expense
+import com.moneysight.app.model.ExpenseListInfo
 import com.moneysight.app.model.ExpenseGroup
 import com.moneysight.app.model.IncomeSource
 import com.moneysight.app.ui.theme.ThemeMode
@@ -35,6 +36,8 @@ class MoneySightRepository(private val context: Context) {
         val AUTO_RESET_STAMP_ENABLED = booleanPreferencesKey("auto_reset_stamp_enabled")
         val AUTO_RESET_STAMP_DAY = intPreferencesKey("auto_reset_stamp_day")
         val LAST_STAMP_RESET_MONTH = stringPreferencesKey("last_stamp_reset_month")
+        val ACTIVE_LIST_ID = stringPreferencesKey("active_list_id")
+        val EXPENSE_LISTS_JSON = stringPreferencesKey("expense_lists_json")
     }
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -131,6 +134,101 @@ class MoneySightRepository(private val context: Context) {
             json.decodeFromString<List<Expense>>(jsonString)
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    val activeListIdFlow: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.ACTIVE_LIST_ID] ?: "current"
+    }
+
+    val expenseListsFlow: Flow<List<ExpenseListInfo>> = context.dataStore.data.map { preferences ->
+        val jsonString = preferences[PreferencesKeys.EXPENSE_LISTS_JSON]
+        if (jsonString != null) {
+            try {
+                val list = json.decodeFromString<List<ExpenseListInfo>>(jsonString)
+                if (list.isEmpty()) listOf(ExpenseListInfo("current", "This Month")) else list
+            } catch (e: Exception) {
+                listOf(ExpenseListInfo("current", "This Month"))
+            }
+        } else {
+            listOf(ExpenseListInfo("current", "This Month"))
+        }
+    }
+
+    suspend fun setActiveListId(listId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ACTIVE_LIST_ID] = listId
+        }
+    }
+
+    suspend fun createNextMonthList(listName: String, sourceListId: String = "current") {
+        context.dataStore.edit { preferences ->
+            val newListId = "month_list_${System.currentTimeMillis()}"
+            val newListInfo = ExpenseListInfo(id = newListId, name = listName)
+
+            val listsJson = preferences[PreferencesKeys.EXPENSE_LISTS_JSON]
+            val currentLists = if (listsJson != null) {
+                try {
+                    json.decodeFromString<List<ExpenseListInfo>>(listsJson)
+                } catch (e: Exception) {
+                    listOf(ExpenseListInfo("current", "This Month"))
+                }
+            } else {
+                listOf(ExpenseListInfo("current", "This Month"))
+            }
+            val updatedLists = (currentLists + newListInfo).distinctBy { it.id }
+            preferences[PreferencesKeys.EXPENSE_LISTS_JSON] = json.encodeToString(updatedLists)
+
+            val expensesJson = preferences[PreferencesKeys.EXPENSES_JSON] ?: "[]"
+            val allExpenses = try {
+                json.decodeFromString<List<Expense>>(expensesJson)
+            } catch (e: Exception) {
+                emptyList()
+            }
+
+            val sourceExpenses = allExpenses.filter { it.listId == sourceListId || (sourceListId == "current" && (it.listId == "current" || it.listId.isBlank())) }
+            val nextMonthCopies = sourceExpenses.map { expense ->
+                expense.copy(
+                    id = java.util.UUID.randomUUID().toString(),
+                    listId = newListId,
+                    isStamped = false,
+                    isPaid = false,
+                    timestamp = System.currentTimeMillis()
+                )
+            }
+
+            val updatedExpenses = allExpenses + nextMonthCopies
+            preferences[PreferencesKeys.EXPENSES_JSON] = json.encodeToString(updatedExpenses)
+            preferences[PreferencesKeys.ACTIVE_LIST_ID] = newListId
+        }
+    }
+
+    suspend fun deleteExpenseList(listId: String) {
+        if (listId == "current") return
+        context.dataStore.edit { preferences ->
+            val currentJson = preferences[PreferencesKeys.EXPENSE_LISTS_JSON]
+            val currentList = if (currentJson != null) {
+                try {
+                    json.decodeFromString<List<ExpenseListInfo>>(currentJson)
+                } catch (e: Exception) {
+                    listOf(ExpenseListInfo("current", "This Month"))
+                }
+            } else {
+                listOf(ExpenseListInfo("current", "This Month"))
+            }
+            val updated = currentList.filter { it.id != listId }
+            preferences[PreferencesKeys.EXPENSE_LISTS_JSON] = json.encodeToString(updated)
+
+            val expensesJson = preferences[PreferencesKeys.EXPENSES_JSON] ?: "[]"
+            try {
+                val allExpenses = json.decodeFromString<List<Expense>>(expensesJson)
+                val remainingExpenses = allExpenses.filter { it.listId != listId }
+                preferences[PreferencesKeys.EXPENSES_JSON] = json.encodeToString(remainingExpenses)
+            } catch (e: Exception) { }
+
+            if (preferences[PreferencesKeys.ACTIVE_LIST_ID] == listId) {
+                preferences[PreferencesKeys.ACTIVE_LIST_ID] = "current"
+            }
         }
     }
 
