@@ -10,6 +10,8 @@ import com.moneysight.app.model.ExpenseListInfo
 import com.moneysight.app.model.IncomeSource
 import com.moneysight.app.ui.theme.ThemeMode
 import com.moneysight.app.util.CurrencyUtils
+import com.moneysight.app.util.DateUtils
+import com.moneysight.app.util.DueDateStatus
 import com.moneysight.app.util.ExpenseCategories
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,8 +23,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 enum class ExpenseSortOrder(val label: String) {
-    NEWEST("Newest First"),
-    OLDEST("Oldest First"),
     EARLIEST_DUE("Earliest Bill to Pay"),
     ALPHABETICAL("Alphabetical (A-Z)"),
     AMOUNT_HIGH_LOW("Highest Amount"),
@@ -30,11 +30,11 @@ enum class ExpenseSortOrder(val label: String) {
 }
 
 enum class ChecklistFilter(val label: String) {
-    ALL("All Bills"),
-    PAID_ONLY("Paid Bills"),
-    UNPAID_ONLY("Unpaid Bills"),
-    STAMPED_ONLY("Stamped Bills"),
-    UNSTAMPED_ONLY("Unstamped Bills")
+    ALL("All"),
+    PAID_ONLY("Ticked"),
+    UNPAID_ONLY("Unticked"),
+    STAMPED_ONLY("Stamped"),
+    UNSTAMPED_ONLY("Unstamped")
 }
 
 enum class MainExpenseStampFilter {
@@ -47,6 +47,13 @@ enum class AppScreen {
     MAIN,
     BILL_CHECKLIST
 }
+
+data class CategoryBreakdownData(
+    val categoryName: String,
+    val totalAmount: Double,
+    val percentage: Float,
+    val billCount: Int
+)
 
 class MoneySightViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -335,7 +342,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     private val _checklistFilter = MutableStateFlow(ChecklistFilter.ALL)
     val checklistFilter: StateFlow<ChecklistFilter> = _checklistFilter.asStateFlow()
 
-    private val _isGroupedChecklistMode = MutableStateFlow(true)
+    private val _isGroupedChecklistMode = MutableStateFlow(false)
     val isGroupedChecklistMode: StateFlow<Boolean> = _isGroupedChecklistMode.asStateFlow()
 
     // Stamp Mode State for Main Page
@@ -367,7 +374,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     private val _expenseSearchQuery = MutableStateFlow("")
     val expenseSearchQuery: StateFlow<String> = _expenseSearchQuery.asStateFlow()
 
-    private val _selectedSortOrder = MutableStateFlow(ExpenseSortOrder.NEWEST)
+    private val _selectedSortOrder = MutableStateFlow(ExpenseSortOrder.EARLIEST_DUE)
     val selectedSortOrder: StateFlow<ExpenseSortOrder> = _selectedSortOrder.asStateFlow()
 
     private val _mainExpenseStampFilter = MutableStateFlow(MainExpenseStampFilter.SPENT_ALL)
@@ -422,14 +429,27 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             return numericOnly.toIntOrNull() ?: Int.MAX_VALUE
         }
 
+        fun getEarliestDuePriorityRank(expense: Expense): Int {
+            if (expense.isStamped) return 3
+            if (expense.dueDate.isBlank()) return 2
+            val status = DateUtils.calculateDueDateStatus(expense.dueDate)
+            return when (status) {
+                is DueDateStatus.Today -> 0
+                is DueDateStatus.DaysRemaining -> 0
+                is DueDateStatus.Overdue -> 1
+                is DueDateStatus.Invalid -> 2
+            }
+        }
+
         // 4. Sorting & Filter Rules
         when (sort) {
-            ExpenseSortOrder.NEWEST -> result.sortedByDescending { it.timestamp }
-            ExpenseSortOrder.OLDEST -> result.sortedBy { it.timestamp }
             ExpenseSortOrder.EARLIEST_DUE -> {
-                // Show all bills, prioritising bills WITH a due date (sorted by earliest due day), followed by bills without dates
+                // Priority 0: Unstamped upcoming due dates (on top first)
+                // Priority 1: Unstamped past due dates (after upcoming)
+                // Priority 2: Bills without due dates
+                // Priority 3: Stamped bills
                 result.sortedWith(
-                    compareBy<Expense> { it.dueDate.isBlank() }
+                    compareBy<Expense> { getEarliestDuePriorityRank(it) }
                         .thenBy { parseDueDayNumber(it.dueDate) }
                         .thenByDescending { it.timestamp }
                 )
@@ -483,6 +503,31 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = 0.0
+    )
+
+    // Where Your Money Goes Category Breakdown Flow (Synced with Main Page Expenses & Presets)
+    val categoryBreakdownList: StateFlow<List<CategoryBreakdownData>> = expenses.map { list ->
+        val totalSum = list.sumOf { it.amount }
+        if (totalSum <= 0) return@map emptyList()
+
+        val grouped = list.groupBy { expense ->
+            ExpenseCategories.getCategoryForExpense(expense.description)
+        }
+
+        grouped.map { (catName, catExpenses) ->
+            val catSum = catExpenses.sumOf { it.amount }
+            val pct = ((catSum / totalSum) * 100).toFloat()
+            CategoryBreakdownData(
+                categoryName = catName,
+                totalAmount = catSum,
+                percentage = pct,
+                billCount = catExpenses.size
+            )
+        }.sortedByDescending { it.totalAmount }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
     )
 
     // Expense Form Inputs
@@ -620,6 +665,17 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _showResetAllStampsDialog = MutableStateFlow(false)
     val showResetAllStampsDialog: StateFlow<Boolean> = _showResetAllStampsDialog.asStateFlow()
+
+    private val _showSimulateGraphDialog = MutableStateFlow(false)
+    val showSimulateGraphDialog: StateFlow<Boolean> = _showSimulateGraphDialog.asStateFlow()
+
+    fun openSimulateGraphDialog() {
+        _showSimulateGraphDialog.value = true
+    }
+
+    fun dismissSimulateGraphDialog() {
+        _showSimulateGraphDialog.value = false
+    }
 
     fun openSettingsDialog() {
         _customPresetInput.value = ""
@@ -815,7 +871,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _selectedCategoryFilter.value = null
         _selectedGroupFilterId.value = null
         _expenseSearchQuery.value = ""
-        _selectedSortOrder.value = ExpenseSortOrder.NEWEST
+        _selectedSortOrder.value = ExpenseSortOrder.EARLIEST_DUE
         _mainExpenseStampFilter.value = MainExpenseStampFilter.SPENT_ALL
     }
 
@@ -1000,6 +1056,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _editGroupIdInput.value = expense.groupId
         _editNotesInput.value = expense.notes
         _editDueDateInput.value = expense.dueDate
+        _editCategoryInput.value = if (expense.category.isNotBlank()) expense.category else "Expenses"
     }
 
     fun dismissEditDialog() {
@@ -1043,6 +1100,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
             category = _editCategoryInput.value,
             groupId = group.id,
             groupName = group.name,
+            category = _editCategoryInput.value.ifBlank { "Expenses" },
             notes = _editNotesInput.value.trim(),
             dueDate = _editDueDateInput.value.trim()
         )

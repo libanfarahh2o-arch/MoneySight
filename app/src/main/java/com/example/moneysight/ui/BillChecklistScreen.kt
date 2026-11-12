@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -80,6 +81,8 @@ import com.moneysight.app.model.Expense
 import androidx.compose.ui.graphics.Color
 import com.moneysight.app.ui.theme.ChecklistBorder
 import com.moneysight.app.ui.components.RealisticCirclePaidStamp
+import com.moneysight.app.ui.components.SimulateGraphDialog
+import com.moneysight.app.ui.theme.ChecklistBorder
 import com.moneysight.app.ui.theme.ChecklistDarkBackground
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
 import com.moneysight.app.ui.theme.ChecklistPurpleLight
@@ -137,6 +140,8 @@ fun BillChecklistScreen(
     val checklistExpenses by viewModel.checklistExpenses.collectAsStateWithLifecycle()
     val isGroupedChecklistMode by viewModel.isGroupedChecklistMode.collectAsStateWithLifecycle()
 
+    val categoryBreakdowns by viewModel.categoryBreakdownList.collectAsStateWithLifecycle()
+    val showSimulateGraphDialog by viewModel.showSimulateGraphDialog.collectAsStateWithLifecycle()
     val showResetAllBillsDialog by viewModel.showResetAllBillsDialog.collectAsStateWithLifecycle()
     val showSimulateGraphDialog by viewModel.showSimulateGraphDialog.collectAsStateWithLifecycle()
     val categoryBreakdowns by viewModel.categoryBreakdownList.collectAsStateWithLifecycle()
@@ -217,7 +222,7 @@ fun BillChecklistScreen(
                     IconButton(onClick = { viewModel.openResetAllBillsDialog() }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Reset All Bills to Unpaid",
+                            contentDescription = "Reset All Bills to Unticked",
                             tint = ChecklistPurplePrimary
                         )
                     }
@@ -275,7 +280,7 @@ fun BillChecklistScreen(
                                     letterSpacing = 0.8.sp
                                 )
                                 Text(
-                                    text = "Enter amount to subtract unpaid bills",
+                                    text = "Enter amount to subtract unticked bills",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = TextSecondaryOnDark,
                                     fontSize = 11.sp
@@ -360,7 +365,7 @@ fun BillChecklistScreen(
                                     )
 
                                     Text(
-                                        text = "Unpaid: -${CurrencyUtils.formatPounds(unpaidExpensesTotal)}",
+                                        text = "Unticked: -${CurrencyUtils.formatPounds(unpaidExpensesTotal)}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = TextSecondaryOnDark,
                                         fontSize = 11.sp
@@ -401,12 +406,12 @@ fun BillChecklistScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Summary Statistics Cards Grid: Paid Bills & Left to Pay
+                        // Summary Statistics Cards Grid: Ticked Bills & Left to Tick
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            // Paid Bills Card
+                            // Ticked Bills Card
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -422,7 +427,7 @@ fun BillChecklistScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "PAID BILLS",
+                                            text = "TICKED",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = IncomeGreen,
@@ -435,7 +440,7 @@ fun BillChecklistScreen(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                text = "$paidExpensesCount paid",
+                                                text = "$paidExpensesCount",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = IncomeGreen,
@@ -450,17 +455,10 @@ fun BillChecklistScreen(
                                         fontWeight = FontWeight.Bold,
                                         color = IncomeGreen
                                     )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "$paidExpensesCount of $totalExpensesCount bills paid",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = IncomeGreen.copy(alpha = 0.85f),
-                                        fontSize = 11.sp
-                                    )
                                 }
                             }
 
-                            // Unpaid Bills Left Card
+                            // Unticked Bills Left Card
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -476,7 +474,7 @@ fun BillChecklistScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "LEFT TO PAY",
+                                            text = "UNTICKED",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = ExpenseRose,
@@ -489,7 +487,7 @@ fun BillChecklistScreen(
                                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                                         ) {
                                             Text(
-                                                text = "$unpaidExpensesCount left",
+                                                text = "$unpaidExpensesCount",
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = ExpenseRose,
@@ -503,13 +501,6 @@ fun BillChecklistScreen(
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = ExpenseRose
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "$unpaidExpensesCount of $totalExpensesCount bills left",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = ExpenseRose.copy(alpha = 0.85f),
-                                        fontSize = 11.sp
                                     )
                                 }
                             }
@@ -633,8 +624,8 @@ fun BillChecklistScreen(
                             Spacer(modifier = Modifier.height(14.dp))
                             Text(
                                 text = when (checklistFilter) {
-                                    ChecklistFilter.UNPAID_ONLY -> "All bills paid!"
-                                    ChecklistFilter.PAID_ONLY -> "No paid bills yet."
+                                    ChecklistFilter.UNPAID_ONLY -> "All bills ticked!"
+                                    ChecklistFilter.PAID_ONLY -> "No ticked bills yet."
                                     ChecklistFilter.ALL -> "No bills recorded."
                                     ChecklistFilter.STAMPED_ONLY -> "No stamped bills yet."
                                     ChecklistFilter.UNSTAMPED_ONLY -> "No unstamped bills found."
@@ -646,8 +637,8 @@ fun BillChecklistScreen(
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = when (checklistFilter) {
-                                    ChecklistFilter.UNPAID_ONLY -> "You have paid all items in Preview. Excellent job!"
-                                    ChecklistFilter.PAID_ONLY -> "Tick off unpaid bills below to track them as paid."
+                                    ChecklistFilter.UNPAID_ONLY -> "You have ticked all items in Simulate. Excellent job!"
+                                    ChecklistFilter.PAID_ONLY -> "Tick off unticked bills below to track them as ticked."
                                     ChecklistFilter.ALL -> "Add expenses on the main screen to track them here."
                                     ChecklistFilter.STAMPED_ONLY -> "Stamp bills on the main page to filter them here."
                                     ChecklistFilter.UNSTAMPED_ONLY -> "All recorded bills have been stamped on the main page."
@@ -730,9 +721,9 @@ fun BillChecklistScreen(
                                     val totalInGroup = groupBills.size
                                     val stampedText = if (stampedInGroup > 0) " • $stampedInGroup stamped" else ""
                                     val groupSubtext = if (isAllGroupPaid) {
-                                        "All $totalInGroup paid$stampedText • -${CurrencyUtils.formatPounds(groupTotalAmount)}"
+                                        "All $totalInGroup ticked$stampedText • -${CurrencyUtils.formatPounds(groupTotalAmount)}"
                                     } else {
-                                        "$paidInGroup of $totalInGroup paid$stampedText • -${CurrencyUtils.formatPounds(groupTotalAmount)}"
+                                        "$paidInGroup of $totalInGroup ticked$stampedText • -${CurrencyUtils.formatPounds(groupTotalAmount)}"
                                     }
 
                                     Column {
@@ -763,7 +754,7 @@ fun BillChecklistScreen(
                                             .padding(horizontal = 10.dp, vertical = 6.dp)
                                     ) {
                                         Text(
-                                            text = if (isAllGroupPaid) "Untick Group" else "Tick Group Paid",
+                                            text = if (isAllGroupPaid) "Untick Group" else "Tick Group",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = if (isAllGroupPaid) ChecklistPurpleLight else ExpenseRose,
@@ -847,7 +838,7 @@ fun BillChecklistScreen(
             },
             text = {
                 Text(
-                    text = "Are you sure you want to reset all bills to unpaid? This will unmark all paid bills so you can start a new Preview list.",
+                    text = "Are you sure you want to reset all bills to unpaid? This will unmark all paid bills so you can start a new Simulate list.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondaryOnDark
                 )
@@ -942,32 +933,13 @@ fun BillChecklistItem(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Right: Paid Status Tag & Amount
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = "-${CurrencyUtils.formatPounds(expense.amount)}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (expense.isPaid) ChecklistPurplePrimary else ExpenseRose
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (expense.isPaid) ChecklistPurpleContainer else ExpenseRoseContainer)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = if (expense.isPaid) "PAID" else "UNPAID",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = if (expense.isPaid) ChecklistPurpleLight else ExpenseRose,
-                            fontSize = 10.sp
-                        )
-                    }
-                }
+                // Right: Amount
+                Text(
+                    text = "-${CurrencyUtils.formatPounds(expense.amount)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (expense.isPaid) ChecklistPurplePrimary else ExpenseRose
+                )
             }
 
             // Matching Realistic Circular Rubber Paid Stamp Centered in Middle of Card!

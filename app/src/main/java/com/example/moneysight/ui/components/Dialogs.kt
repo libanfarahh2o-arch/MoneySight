@@ -69,9 +69,16 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextAlign
+import com.moneysight.app.ui.theme.ChecklistPurpleContainer
+import com.moneysight.app.ui.theme.ChecklistPurpleLight
+import com.moneysight.app.ui.theme.ChecklistPurplePrimary
+import com.moneysight.app.ui.theme.ChecklistSurfaceVariant
 import com.moneysight.app.ui.theme.EntryTeal
 import com.moneysight.app.ui.theme.EntryTealContainer
+import com.moneysight.app.ui.theme.ExpenseRose
 import com.moneysight.app.ui.theme.IncomeGreen
+import com.moneysight.app.ui.theme.OnChecklistPurple
 import com.moneysight.app.ui.theme.OnEntryTeal
 import com.moneysight.app.ui.theme.ThemeMode
 import com.moneysight.app.util.ExpenseCategories
@@ -98,6 +105,7 @@ import com.moneysight.app.model.ExpenseGroup
 import com.moneysight.app.model.IncomeSource
 import com.moneysight.app.ui.theme.ForestCardBorder
 import com.moneysight.app.ui.theme.ForestSurface
+import com.moneysight.app.viewmodel.CategoryBreakdownData
 import com.moneysight.app.ui.theme.ForestSurfaceVariant
 import com.moneysight.app.ui.theme.MintGreenDark
 import com.moneysight.app.ui.theme.MintGreenPrimary

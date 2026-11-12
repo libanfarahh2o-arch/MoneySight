@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -461,10 +462,9 @@ fun AddExpenseSection(
             containerColor = Color.White,
             shape = RoundedCornerShape(28.dp),
             title = {
-                Row(
+                Box(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -483,8 +483,8 @@ fun AddExpenseSection(
                     }
 
                     Text(
-                        text = "+ Manage",
-                        style = MaterialTheme.typography.labelSmall,
+                        text = "Choose a category",
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF00796B),
                         modifier = Modifier.clickable {
@@ -584,7 +584,24 @@ fun AddExpenseSection(
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Close", fontWeight = FontWeight.Bold)
+                    Button(
+                        onClick = { showCategoryBrowser = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = EntryTeal,
+                            contentColor = OnEntryTeal
+                        )
+                    ) {
+                        Text(
+                            text = "Done",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp
+                        )
+                    }
                 }
             }
         )

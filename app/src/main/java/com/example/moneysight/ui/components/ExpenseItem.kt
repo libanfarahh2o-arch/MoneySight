@@ -55,6 +55,7 @@ import com.moneysight.app.ui.theme.IncomeGreen
 import com.moneysight.app.ui.theme.IncomeGreenContainer
 import com.moneysight.app.ui.theme.TextPrimaryOnDark
 import com.moneysight.app.ui.theme.TextSecondaryOnDark
+import com.moneysight.app.util.ExpenseCategories
 import com.moneysight.app.ui.theme.WarningAmber
 import com.moneysight.app.ui.theme.WarningRed
 import com.moneysight.app.util.CurrencyUtils
