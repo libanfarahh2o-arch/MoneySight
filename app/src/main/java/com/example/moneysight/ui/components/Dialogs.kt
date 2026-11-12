@@ -27,8 +27,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.AccountBalanceWallet
@@ -2137,6 +2140,7 @@ fun SimulateGraphDialog(
     onDismiss: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) } // 0: Pie Chart, 1: Bar Graph, 2: Breakdown
+    var selectedGraphCategory by remember { mutableStateOf<CategoryBreakdownData?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -2363,17 +2367,56 @@ fun SimulateGraphDialog(
                                     Box(
                                         modifier = Modifier
                                             .size(200.dp)
-                                            .padding(6.dp),
+                                            .padding(6.dp)
+                                            .pointerInput(categoryBreakdowns) {
+                                                detectTapGestures { offset ->
+                                                    val centerX = size.width / 2f
+                                                    val centerY = size.height / 2f
+                                                    val dx = offset.x - centerX
+                                                    val dy = offset.y - centerY
+                                                    val distance = kotlin.math.sqrt(dx * dx + dy * dy)
+
+                                                    if (distance >= 25.dp.toPx() && distance <= 100.dp.toPx()) {
+                                                        var angle = Math.toDegrees(kotlin.math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
+                                                        angle = (angle + 90f + 360f) % 360f
+
+                                                        var accumulatedAngle = 0f
+                                                        var tappedItem: CategoryBreakdownData? = null
+                                                        for (item in categoryBreakdowns) {
+                                                            val sweep = (item.percentage / 100f) * 360f
+                                                            if (angle >= accumulatedAngle && angle < accumulatedAngle + sweep) {
+                                                                tappedItem = item
+                                                                break
+                                                            }
+                                                            accumulatedAngle += sweep
+                                                        }
+
+                                                        selectedGraphCategory = if (selectedGraphCategory?.categoryName == tappedItem?.categoryName) null else tappedItem
+                                                    } else {
+                                                        selectedGraphCategory = null
+                                                    }
+                                                }
+                                            },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Canvas(modifier = Modifier.fillMaxSize()) {
                                             var startAngle = -90f
-                                            val strokeWidth = 32.dp.toPx()
                                             categoryBreakdowns.forEach { item ->
                                                 val sweepAngle = (item.percentage / 100f) * 360f
                                                 val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+                                                val isSelected = selectedGraphCategory?.categoryName == item.categoryName
+                                                val isAnySelected = selectedGraphCategory != null
+
+                                                val sliceColor = if (!isAnySelected || isSelected) {
+                                                    preset.color
+                                                } else {
+                                                    preset.color.copy(alpha = 0.35f)
+                                                }
+
+                                                val strokeWidth = if (isSelected) 40.dp.toPx() else 32.dp.toPx()
+
                                                 drawArc(
-                                                    color = preset.color,
+                                                    color = sliceColor,
                                                     startAngle = startAngle,
                                                     sweepAngle = sweepAngle,
                                                     useCenter = false,
@@ -2383,28 +2426,61 @@ fun SimulateGraphDialog(
                                             }
                                         }
 
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(
-                                                text = "TOTAL SPENT",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color(0xFF6E6D7A),
-                                                fontSize = 9.5.sp
-                                            )
-                                            Spacer(modifier = Modifier.height(2.dp))
-                                            Text(
-                                                text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.ExtraBold,
-                                                color = Color(0xFF1F1F24),
-                                                fontSize = 16.sp
-                                            )
-                                            Text(
-                                                text = "Tap a slice for details",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = Color(0xFF8E7CC3),
-                                                fontSize = 9.5.sp
-                                            )
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center,
+                                            modifier = Modifier.clickable { selectedGraphCategory = null }
+                                        ) {
+                                            if (selectedGraphCategory != null) {
+                                                val active = selectedGraphCategory!!
+                                                val preset = ExpenseCategories.getPresetForCategory(active.categoryName)
+
+                                                Text(
+                                                    text = active.categoryName.uppercase(),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    color = preset.color,
+                                                    fontSize = 10.sp,
+                                                    maxLines = 1
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = "-${CurrencyUtils.formatPounds(active.totalAmount)}",
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    color = Color(0xFF1F1F24),
+                                                    fontSize = 16.sp
+                                                )
+                                                Text(
+                                                    text = String.format(java.util.Locale.UK, "%.1f%% • %d bill%s", active.percentage, active.billCount, if (active.billCount != 1) "s" else ""),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = preset.color,
+                                                    fontSize = 9.5.sp
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = "TOTAL SPENT",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFF6E6D7A),
+                                                    fontSize = 9.5.sp
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    color = Color(0xFF1F1F24),
+                                                    fontSize = 16.sp
+                                                )
+                                                Text(
+                                                    text = "Tap a slice for details",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = Color(0xFF8E7CC3),
+                                                    fontSize = 9.5.sp
+                                                )
+                                            }
                                         }
                                     }
 
@@ -2417,10 +2493,20 @@ fun SimulateGraphDialog(
                                     ) {
                                         categoryBreakdowns.forEach { item ->
                                             val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+                                            val isSelected = selectedGraphCategory?.categoryName == item.categoryName
+
                                             Box(
                                                 modifier = Modifier
                                                     .clip(RoundedCornerShape(16.dp))
-                                                    .background(Color(0xFFEBF5F0))
+                                                    .background(if (isSelected) preset.color.copy(alpha = 0.22f) else Color(0xFFEBF5F0))
+                                                    .border(
+                                                        width = if (isSelected) 1.5.dp else 0.dp,
+                                                        color = if (isSelected) preset.color else Color.Transparent,
+                                                        shape = RoundedCornerShape(16.dp)
+                                                    )
+                                                    .clickable {
+                                                        selectedGraphCategory = if (isSelected) null else item
+                                                    }
                                                     .padding(horizontal = 10.dp, vertical = 6.dp)
                                             ) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2443,7 +2529,7 @@ fun SimulateGraphDialog(
                                                         text = item.categoryName,
                                                         style = MaterialTheme.typography.labelSmall,
                                                         fontWeight = FontWeight.Bold,
-                                                        color = Color(0xFF1F1F24),
+                                                        color = if (isSelected) preset.color else Color(0xFF1F1F24),
                                                         fontSize = 12.sp
                                                     )
                                                 }
