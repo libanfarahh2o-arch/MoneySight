@@ -1096,20 +1096,30 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         if (list.isEmpty() || total <= 0) {
             emptyList()
         } else {
-            val filteredExpenses = list.filter { expense ->
-                val catName = ExpenseCategories.getCategoryForExpense(expense.description)
-                tickedPresets.contains(catName)
-            }
-            val filteredTotal = filteredExpenses.sumOf { it.amount }
-            if (filteredExpenses.isEmpty() || filteredTotal <= 0) {
-                emptyList()
-            } else {
-                val grouped = filteredExpenses.groupBy { expense ->
+            val getCatName: (Expense) -> String = { expense ->
+                if (expense.category.isNotBlank() && !expense.category.equals("General", ignoreCase = true)) {
+                    expense.category
+                } else {
                     ExpenseCategories.getCategoryForExpense(expense.description)
                 }
+            }
+
+            val matchingExpenses = if (tickedPresets.isNotEmpty()) {
+                val matched = list.filter { tickedPresets.contains(getCatName(it)) }
+                if (matched.isNotEmpty()) matched else list
+            } else {
+                list
+            }
+
+            val effectiveTotal = matchingExpenses.sumOf { it.amount }
+
+            if (matchingExpenses.isEmpty() || effectiveTotal <= 0) {
+                emptyList()
+            } else {
+                val grouped = matchingExpenses.groupBy { getCatName(it) }
                 grouped.map { (catName, catExpenses) ->
                     val catTotal = catExpenses.sumOf { it.amount }
-                    val pct = ((catTotal / filteredTotal) * 100.0).toFloat()
+                    val pct = ((catTotal / effectiveTotal) * 100.0).toFloat()
                     CategoryBreakdownData(
                         categoryName = catName,
                         billCount = catExpenses.size,
