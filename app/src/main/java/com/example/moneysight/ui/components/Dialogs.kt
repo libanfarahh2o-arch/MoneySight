@@ -2758,12 +2758,18 @@ fun ExpenseListsDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Start
+                                    ) {
                                         Text(
                                             text = listInfo.name,
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (isActive) EntryTeal else TextPrimaryOnDark
+                                            color = if (isActive) EntryTeal else TextPrimaryOnDark,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f, fill = false)
                                         )
 
                                         if (isActive) {
@@ -2779,7 +2785,9 @@ fun ExpenseListsDialog(
                                                     style = MaterialTheme.typography.labelSmall,
                                                     fontWeight = FontWeight.Bold,
                                                     color = OnEntryTeal,
-                                                    fontSize = 9.sp
+                                                    fontSize = 9.sp,
+                                                    maxLines = 1,
+                                                    softWrap = false
                                                 )
                                             }
                                         }
@@ -2790,11 +2798,18 @@ fun ExpenseListsDialog(
                                         text = "${listExpenses.size} bills • -${CurrencyUtils.formatPounds(listTotal)}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = TextSecondaryOnDark,
-                                        fontSize = 11.5.sp
+                                        fontSize = 11.5.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
 
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.End
+                                ) {
                                     if (listInfo.id != "current") {
                                         // "Upgrade to Live" Button
                                         Button(
@@ -2810,7 +2825,9 @@ fun ExpenseListsDialog(
                                             Text(
                                                 text = "Upgrade to Live ⚡",
                                                 fontWeight = FontWeight.Bold,
-                                                fontSize = 10.sp
+                                                fontSize = 10.sp,
+                                                maxLines = 1,
+                                                softWrap = false
                                             )
                                         }
 
