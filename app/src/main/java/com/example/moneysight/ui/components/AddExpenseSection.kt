@@ -11,7 +11,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,16 +75,9 @@ fun AddExpenseSection(
     descriptionInput: String,
     amountInput: String,
     dueDateInput: String = "",
-    frequency: String = "Monthly",
-    onFrequencyChanged: (String) -> Unit = {},
-    recurrenceEnd: String = "Continuous",
-    onRecurrenceEndChanged: (String) -> Unit = {},
-    recurrenceEndDate: String = "",
-    onRecurrenceEndDateChanged: (String) -> Unit = {},
     selectedCategory: String = "General",
     selectedGroupId: String,
     groups: List<ExpenseGroup>,
-    activeCategories: List<ExpenseCategory>,
     isSubmitting: Boolean,
     isExpanded: Boolean,
     onToggleExpand: () -> Unit,

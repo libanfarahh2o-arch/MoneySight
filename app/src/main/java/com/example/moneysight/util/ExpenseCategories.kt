@@ -2,7 +2,10 @@ package com.moneysight.app.util
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.ShowChart
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Build
@@ -23,7 +26,6 @@ import androidx.compose.material.icons.filled.House
 import androidx.compose.material.icons.filled.Kitchen
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Pets
@@ -33,10 +35,8 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.filled.SportsBasketball
 import androidx.compose.material.icons.filled.Subscriptions
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.filled.Weekend
 import androidx.compose.material.icons.filled.Work
@@ -129,9 +129,9 @@ object ExpenseCategories {
             "build" -> Icons.Default.Build
             "home" -> Icons.Default.Home
             "house" -> Icons.Default.House
-            "trending_up" -> Icons.Default.TrendingUp
+            "trending_up" -> Icons.AutoMirrored.Filled.TrendingUp
             "shield" -> Icons.Default.Shield
-            "show_chart" -> Icons.Default.ShowChart
+            "show_chart" -> Icons.AutoMirrored.Filled.ShowChart
             "favorite" -> Icons.Default.Favorite
             "pets" -> Icons.Default.Pets
             "savings" -> Icons.Default.Savings
@@ -142,7 +142,7 @@ object ExpenseCategories {
             "taxes" -> Icons.AutoMirrored.Filled.ReceiptLong
             "transfers" -> Icons.AutoMirrored.Filled.CompareArrows
             "flight" -> Icons.Default.Flight
-            "book" -> Icons.Default.MenuBook
+            "book" -> Icons.AutoMirrored.Filled.MenuBook
             else -> Icons.Default.Category
         }
     }
@@ -151,19 +151,6 @@ object ExpenseCategories {
         return categoryGridPresets.firstOrNull { it.title.equals(name, ignoreCase = true) }
             ?: PresetCategoryItem(name.lowercase(), name, "category", Color(0xFF78909C))
     }
-
-    val popularSuggestions = listOf(
-        "Bills",
-        "Groceries",
-        "Eating Out",
-        "Transport",
-        "Shopping",
-        "Expenses",
-        "Family",
-        "Personal Care",
-        "Subscriptions",
-        "Entertainment"
-    )
 
     val allCategories = listOf(
         ExpenseCategory(

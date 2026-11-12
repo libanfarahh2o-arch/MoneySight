@@ -156,7 +156,6 @@ fun MoneySightScreen(
     val expenseToDelete by viewModel.expenseToDelete.collectAsStateWithLifecycle()
 
     // Presets & Settings Management States
-    val activeCategories by viewModel.activeCategories.collectAsStateWithLifecycle()
     val combinedCategories by viewModel.combinedCategories.collectAsStateWithLifecycle()
     val customPresets by viewModel.customPresets.collectAsStateWithLifecycle()
     val selectedPresets by viewModel.selectedPresets.collectAsStateWithLifecycle()
@@ -268,7 +267,6 @@ fun MoneySightScreen(
                     selectedCategory = selectedCategoryForNewExpense,
                     selectedGroupId = selectedGroupIdForNewExpense,
                     groups = expenseGroups,
-                    activeCategories = activeCategories,
                     isSubmitting = isSubmitting,
                     isExpanded = isEntryExpanded,
                     onToggleExpand = { isEntryExpanded = !isEntryExpanded },
@@ -781,7 +779,6 @@ fun MoneySightScreen(
     // Manage Presets Dialog
     if (showManagePresetsDialog) {
         ManagePresetsDialog(
-            combinedCategories = combinedCategories,
             customPresets = customPresets,
             selectedPresets = selectedPresets,
             customPresetInput = customPresetInput,

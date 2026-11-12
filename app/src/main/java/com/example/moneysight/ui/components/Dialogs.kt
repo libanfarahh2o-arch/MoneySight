@@ -40,15 +40,14 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GridView
-import com.moneysight.app.model.ExpenseListInfo
 import androidx.compose.material.icons.filled.Group
+import com.moneysight.app.model.ExpenseListInfo
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.moneysight.app.viewmodel.CategoryBreakdownData
-import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material.icons.filled.Verified
@@ -1696,7 +1695,6 @@ fun SettingsDialog(
  */
 @Composable
 fun ManagePresetsDialog(
-    combinedCategories: List<ExpenseCategory>,
     customPresets: List<String>,
     selectedPresets: Set<String>,
     customPresetInput: String,
@@ -2305,243 +2303,110 @@ fun SimulateGraphDialog(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                if (categoryBreakdowns.isEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "No expenses recorded yet",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F1F24)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Add expenses on the main screen to see where your money goes.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF6E6D7A),
-                            fontSize = 12.5.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    when (selectedTab) {
-                        0 -> {
-                            // Tab 1: Donut Pie Chart Canvas
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(200.dp)
-                                        .padding(10.dp),
-                                    contentAlignment = Alignment.Center
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(270.dp)
+                ) {
+                    if (categoryBreakdowns.isEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(vertical = 24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "No expenses recorded yet",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1F1F24)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Add expenses on the main screen to see where your money goes.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF6E6D7A),
+                                fontSize = 12.5.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        when (selectedTab) {
+                            0 -> {
+                                // Tab 1: Donut Pie Chart Canvas
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Canvas(modifier = Modifier.fillMaxSize()) {
-                                        var startAngle = -90f
-                                        val strokeWidth = 32.dp.toPx()
-                                        categoryBreakdowns.forEach { item ->
-                                            val sweepAngle = (item.percentage / 100f) * 360f
-                                            val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
-                                            drawArc(
-                                                color = preset.color,
-                                                startAngle = startAngle,
-                                                sweepAngle = sweepAngle,
-                                                useCenter = false,
-                                                style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
-                                            )
-                                            startAngle += sweepAngle
-                                        }
-                                    }
-
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            text = "TOTAL SPENT",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF6E6D7A),
-                                            fontSize = 9.5.sp
-                                        )
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(
-                                            text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color = Color(0xFF1F1F24),
-                                            fontSize = 16.sp
-                                        )
-                                        Text(
-                                            text = "Tap a slice for details",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = Color(0xFF8E7CC3),
-                                            fontSize = 9.5.sp
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                // Scrollable Category Chips below Donut Chart
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .horizontalScroll(rememberScrollState()),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    categoryBreakdowns.forEach { item ->
-                                        val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .background(Color(0xFFEBF5F0))
-                                                .padding(horizontal = 10.dp, vertical = 6.dp)
-                                        ) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(18.dp)
-                                                        .clip(CircleShape)
-                                                        .background(preset.color),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Icon(
-                                                        imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
-                                                        contentDescription = null,
-                                                        tint = Color.White,
-                                                        modifier = Modifier.size(11.dp)
-                                                    )
-                                                }
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text(
-                                                    text = item.categoryName,
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Color(0xFF1F1F24),
-                                                    fontSize = 12.sp
+                                    Box(
+                                        modifier = Modifier
+                                            .size(200.dp)
+                                            .padding(6.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Canvas(modifier = Modifier.fillMaxSize()) {
+                                            var startAngle = -90f
+                                            val strokeWidth = 32.dp.toPx()
+                                            categoryBreakdowns.forEach { item ->
+                                                val sweepAngle = (item.percentage / 100f) * 360f
+                                                val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+                                                drawArc(
+                                                    color = preset.color,
+                                                    startAngle = startAngle,
+                                                    sweepAngle = sweepAngle,
+                                                    useCenter = false,
+                                                    style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
                                                 )
+                                                startAngle += sweepAngle
                                             }
                                         }
-                                    }
-                                }
-                            }
-                        }
 
-                        1 -> {
-                            // Tab 2: Bar Graph
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(20.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F0))
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    val top5Categories = remember(categoryBreakdowns) {
-                                        categoryBreakdowns.take(5)
-                                    }
-                                    val maxAmount = remember(top5Categories) {
-                                        top5Categories.maxOfOrNull { it.totalAmount } ?: 1.0
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(
+                                                text = "TOTAL SPENT",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF6E6D7A),
+                                                fontSize = 9.5.sp
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFF1F1F24),
+                                                fontSize = 16.sp
+                                            )
+                                            Text(
+                                                text = "Tap a slice for details",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = Color(0xFF8E7CC3),
+                                                fontSize = 9.5.sp
+                                            )
+                                        }
                                     }
 
+                                    // Scrollable Category Chips below Donut Chart
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(200.dp),
-                                        horizontalArrangement = Arrangement.SpaceEvenly,
-                                        verticalAlignment = Alignment.Bottom
+                                            .horizontalScroll(rememberScrollState()),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        top5Categories.forEach { item ->
+                                        categoryBreakdowns.forEach { item ->
                                             val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
-                                            val barFraction = (item.totalAmount / maxAmount).toFloat().coerceIn(0.12f, 1f)
-
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Bottom,
-                                                modifier = Modifier.weight(1f)
-                                            ) {
-                                                // Pill Badge Amount Above Bar
-                                                Box(
-                                                    modifier = Modifier
-                                                        .clip(RoundedCornerShape(8.dp))
-                                                        .background(Color.White)
-                                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                                ) {
-                                                    Text(
-                                                        text = "£${item.totalAmount.toInt()}",
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = preset.color,
-                                                        fontSize = 10.5.sp
-                                                    )
-                                                }
-
-                                                Spacer(modifier = Modifier.height(6.dp))
-
-                                                // Vertical Bar
-                                                Box(
-                                                    modifier = Modifier
-                                                        .width(36.dp)
-                                                        .fillMaxHeight(fraction = barFraction * 0.75f)
-                                                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                                                        .background(preset.color)
-                                                )
-
-                                                Spacer(modifier = Modifier.height(8.dp))
-
-                                                // Category Icon Below Bar
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(32.dp)
-                                                        .clip(CircleShape)
-                                                        .background(preset.color),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Icon(
-                                                        imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
-                                                        contentDescription = item.categoryName,
-                                                        tint = Color.White,
-                                                        modifier = Modifier.size(18.dp)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        2 -> {
-                            // Tab 3: Breakdown List
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 340.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                items(categoryBreakdowns, key = { it.categoryName }) { item ->
-                                    val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
-
-                                    Card(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(16.dp),
-                                        colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F0))
-                                    ) {
-                                        Column(modifier = Modifier.padding(12.dp)) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .background(Color(0xFFEBF5F0))
+                                                    .padding(horizontal = 10.dp, vertical = 6.dp)
                                             ) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Box(
                                                         modifier = Modifier
-                                                            .size(28.dp)
+                                                            .size(18.dp)
                                                             .clip(CircleShape)
                                                             .background(preset.color),
                                                         contentAlignment = Alignment.Center
@@ -2550,60 +2415,198 @@ fun SimulateGraphDialog(
                                                             imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
                                                             contentDescription = null,
                                                             tint = Color.White,
-                                                            modifier = Modifier.size(16.dp)
+                                                            modifier = Modifier.size(11.dp)
                                                         )
                                                     }
-                                                    Spacer(modifier = Modifier.width(8.dp))
+                                                    Spacer(modifier = Modifier.width(6.dp))
                                                     Text(
                                                         text = item.categoryName,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = Color(0xFF1F1F24),
-                                                        fontSize = 13.5.sp
-                                                    )
-                                                    Spacer(modifier = Modifier.width(4.dp))
-                                                    Text(
-                                                        text = "(${item.billCount})",
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        color = Color(0xFF6E6D7A),
-                                                        fontSize = 11.sp
-                                                    )
-                                                }
-
-                                                Column(horizontalAlignment = Alignment.End) {
-                                                    Text(
-                                                        text = "-${CurrencyUtils.formatPounds(item.totalAmount)}",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = Color(0xFF1F1F24),
-                                                        fontSize = 13.5.sp
-                                                    )
-                                                    Text(
-                                                        text = String.format(java.util.Locale.UK, "%.1f%%", item.percentage),
                                                         style = MaterialTheme.typography.labelSmall,
                                                         fontWeight = FontWeight.Bold,
-                                                        color = preset.color,
-                                                        fontSize = 11.sp
+                                                        color = Color(0xFF1F1F24),
+                                                        fontSize = 12.sp
                                                     )
                                                 }
                                             }
+                                        }
+                                    }
+                                }
+                            }
 
-                                            Spacer(modifier = Modifier.height(8.dp))
+                            1 -> {
+                                // Tab 2: Bar Graph
+                                Card(
+                                    modifier = Modifier.fillMaxSize(),
+                                    shape = RoundedCornerShape(20.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F0))
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        val top5Categories = remember(categoryBreakdowns) {
+                                            categoryBreakdowns.take(5)
+                                        }
+                                        val maxAmount = remember(top5Categories) {
+                                            top5Categories.maxOfOrNull { it.totalAmount } ?: 1.0
+                                        }
 
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(7.dp)
-                                                    .clip(RoundedCornerShape(4.dp))
-                                                    .background(Color(0xFFE0ECE6))
-                                            ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(220.dp),
+                                            horizontalArrangement = Arrangement.SpaceEvenly,
+                                            verticalAlignment = Alignment.Bottom
+                                        ) {
+                                            top5Categories.forEach { item ->
+                                                val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+                                                val barFraction = (item.totalAmount / maxAmount).toFloat().coerceIn(0.12f, 1f)
+
+                                                Column(
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.Bottom,
+                                                    modifier = Modifier.weight(1f)
+                                                ) {
+                                                    // Pill Badge Amount Above Bar
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .clip(RoundedCornerShape(8.dp))
+                                                            .background(Color.White)
+                                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = "£${item.totalAmount.toInt()}",
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = preset.color,
+                                                            fontSize = 10.5.sp
+                                                        )
+                                                    }
+
+                                                    Spacer(modifier = Modifier.height(6.dp))
+
+                                                    // Vertical Bar
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .width(36.dp)
+                                                            .fillMaxHeight(fraction = barFraction * 0.72f)
+                                                            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                                                            .background(preset.color)
+                                                    )
+
+                                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                                    // Category Icon Below Bar
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(32.dp)
+                                                            .clip(CircleShape)
+                                                            .background(preset.color),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                                                            contentDescription = item.categoryName,
+                                                            tint = Color.White,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            2 -> {
+                                // Tab 3: Breakdown List
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    items(categoryBreakdowns, key = { it.categoryName }) { item ->
+                                        val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
+
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F0))
+                                        ) {
+                                            Column(modifier = Modifier.padding(12.dp)) {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(28.dp)
+                                                                .clip(CircleShape)
+                                                                .background(preset.color),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                                                                contentDescription = null,
+                                                                tint = Color.White,
+                                                                modifier = Modifier.size(16.dp)
+                                                            )
+                                                        }
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Text(
+                                                            text = item.categoryName,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = Color(0xFF1F1F24),
+                                                            fontSize = 13.5.sp
+                                                        )
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        Text(
+                                                            text = "(${item.billCount})",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = Color(0xFF6E6D7A),
+                                                            fontSize = 11.sp
+                                                        )
+                                                    }
+
+                                                    Column(horizontalAlignment = Alignment.End) {
+                                                        Text(
+                                                            text = "-${CurrencyUtils.formatPounds(item.totalAmount)}",
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = Color(0xFF1F1F24),
+                                                            fontSize = 13.5.sp
+                                                        )
+                                                        Text(
+                                                            text = String.format(java.util.Locale.UK, "%.1f%%", item.percentage),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = preset.color,
+                                                            fontSize = 11.sp
+                                                        )
+                                                    }
+                                                }
+
+                                                Spacer(modifier = Modifier.height(8.dp))
+
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxWidth(fraction = (item.percentage / 100f).coerceIn(0.02f, 1f))
+                                                        .fillMaxWidth()
                                                         .height(7.dp)
                                                         .clip(RoundedCornerShape(4.dp))
-                                                        .background(preset.color)
-                                                )
+                                                        .background(Color(0xFFE0ECE6))
+                                                ) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth(fraction = (item.percentage / 100f).coerceIn(0.02f, 1f))
+                                                            .height(7.dp)
+                                                            .clip(RoundedCornerShape(4.dp))
+                                                            .background(preset.color)
+                                                    )
+                                                }
                                             }
                                         }
                                     }

@@ -167,14 +167,6 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = emptyList()
     )
 
-    val checklistTotalIncome: StateFlow<Double> = checklistIncomeSources.map { list ->
-        list.sumOf { it.amount }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0.0
-    )
-
     val activeListId: StateFlow<String> = repository.activeListIdFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -303,22 +295,6 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = 0
     )
 
-    val availableAfterPaidBills: StateFlow<Double> = combine(checklistTotalIncome, paidExpensesTotal) { income, paid ->
-        income - paid
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0.0
-    )
-
-    val checklistProjectedRemaining: StateFlow<Double> = combine(checklistTotalIncome, totalExpenses) { income, total ->
-        income - total
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0.0
-    )
-
     val autoResetStampEnabled: StateFlow<Boolean> = repository.autoResetStampEnabledFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -350,17 +326,6 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
 
     val manualChecklistIncomeAmount: StateFlow<Double> = manualChecklistIncomeInput.map { input ->
         CurrencyUtils.parseAmount(input) ?: 0.0
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0.0
-    )
-
-    val remainingAfterUnpaidBills: StateFlow<Double> = combine(
-        manualChecklistIncomeAmount,
-        unpaidExpensesTotal
-    ) { income, unpaid ->
-        income - unpaid
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
