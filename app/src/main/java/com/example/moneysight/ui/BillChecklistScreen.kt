@@ -77,7 +77,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.moneysight.app.model.Expense
+import androidx.compose.ui.graphics.Color
 import com.moneysight.app.ui.theme.ChecklistBorder
+import com.moneysight.app.ui.theme.LocalMoneySightColors
 import com.moneysight.app.ui.components.RealisticCirclePaidStamp
 import com.moneysight.app.ui.theme.ChecklistDarkBackground
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
@@ -552,16 +554,22 @@ fun BillChecklistScreen(
                                     .clickable { viewModel.onChecklistFilterSelected(filter) }
                                     .padding(horizontal = 14.dp, vertical = 8.dp)
                             ) {
+                                val isDarkTheme = LocalMoneySightColors.current.isDark
+                                val activeTextColor = if (isDarkTheme) Color(0xFF13121A) else Color.White
+
                                 Text(
                                     text = chipLabel,
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) OnChecklistPurple else TextPrimaryOnDark,
+                                    color = if (isSelected) activeTextColor else TextPrimaryOnDark,
                                     fontSize = 12.sp
                                 )
                             }
                         }
                     }
+
+                    val isDarkTheme = LocalMoneySightColors.current.isDark
+                    val buttonTextColor = if (isDarkTheme) Color(0xFF13121A) else Color.White
 
                     // Combined View Mode Toggle Button Placed on the Right
                     Row(
@@ -572,17 +580,16 @@ fun BillChecklistScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(ChecklistSurface)
-                                .border(1.dp, ChecklistBorder, RoundedCornerShape(12.dp))
+                                .background(ChecklistPurplePrimary)
                                 .clickable { viewModel.toggleChecklistGroupedMode() }
-                                .padding(horizontal = 12.dp, vertical = 7.dp),
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = if (isGroupedChecklistMode) Icons.Default.Folder else Icons.AutoMirrored.Filled.FormatListBulleted,
                                     contentDescription = if (isGroupedChecklistMode) "Grouped Folders" else "Flat List",
-                                    tint = ChecklistPurpleLight,
+                                    tint = buttonTextColor,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
@@ -590,7 +597,7 @@ fun BillChecklistScreen(
                                     text = if (isGroupedChecklistMode) "Grouped Folders" else "Flat List",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = OnChecklistPurple,
+                                    color = buttonTextColor,
                                     fontSize = 12.sp
                                 )
                             }
