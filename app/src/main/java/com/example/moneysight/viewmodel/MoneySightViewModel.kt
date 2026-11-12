@@ -182,7 +182,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     val expenseLists: StateFlow<List<ExpenseListInfo>> = repository.expenseListsFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = listOf(ExpenseListInfo("current", "This Month"))
+        initialValue = listOf(ExpenseListInfo("current", "Live"))
     )
 
     val expenses: StateFlow<List<Expense>> = combine(
@@ -219,6 +219,12 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             repository.createNextMonthList(listName, activeListId.value)
             _showExpenseListsDialog.value = false
+        }
+    }
+
+    fun promoteListToLive(listId: String) {
+        viewModelScope.launch {
+            repository.promoteListToLive(listId)
         }
     }
 

@@ -146,12 +146,14 @@ class MoneySightRepository(private val context: Context) {
         if (jsonString != null) {
             try {
                 val list = json.decodeFromString<List<ExpenseListInfo>>(jsonString)
-                if (list.isEmpty()) listOf(ExpenseListInfo("current", "This Month")) else list
+                if (list.isEmpty()) listOf(ExpenseListInfo("current", "Live")) else list.map {
+                    if (it.id == "current" && it.name == "This Month") it.copy(name = "Live") else it
+                }
             } catch (e: Exception) {
-                listOf(ExpenseListInfo("current", "This Month"))
+                listOf(ExpenseListInfo("current", "Live"))
             }
         } else {
-            listOf(ExpenseListInfo("current", "This Month"))
+            listOf(ExpenseListInfo("current", "Live"))
         }
     }
 
@@ -171,10 +173,10 @@ class MoneySightRepository(private val context: Context) {
                 try {
                     json.decodeFromString<List<ExpenseListInfo>>(listsJson)
                 } catch (e: Exception) {
-                    listOf(ExpenseListInfo("current", "This Month"))
+                    listOf(ExpenseListInfo("current", "Live"))
                 }
             } else {
-                listOf(ExpenseListInfo("current", "This Month"))
+                listOf(ExpenseListInfo("current", "Live"))
             }
             val updatedLists = (currentLists + newListInfo).distinctBy { it.id }
             preferences[PreferencesKeys.EXPENSE_LISTS_JSON] = json.encodeToString(updatedLists)
@@ -203,6 +205,48 @@ class MoneySightRepository(private val context: Context) {
         }
     }
 
+    suspend fun promoteListToLive(secondaryListId: String) {
+        if (secondaryListId == "current") return
+        context.dataStore.edit { preferences ->
+            val expensesJson = preferences[PreferencesKeys.EXPENSES_JSON] ?: "[]"
+            val allExpenses = try {
+                json.decodeFromString<List<Expense>>(expensesJson)
+            } catch (e: Exception) {
+                emptyList()
+            }
+
+            val otherSecondaryExpenses = allExpenses.filter { it.listId != "current" && it.listId.isNotBlank() && it.listId != secondaryListId }
+            val secondaryExpenses = allExpenses.filter { it.listId == secondaryListId }
+            val upgradedLiveExpenses = secondaryExpenses.map { expense ->
+                expense.copy(
+                    id = java.util.UUID.randomUUID().toString(),
+                    listId = "current",
+                    timestamp = System.currentTimeMillis()
+                )
+            }
+
+            val updatedExpenses = otherSecondaryExpenses + upgradedLiveExpenses
+            preferences[PreferencesKeys.EXPENSES_JSON] = json.encodeToString(updatedExpenses)
+
+            val listsJson = preferences[PreferencesKeys.EXPENSE_LISTS_JSON]
+            val currentLists = if (listsJson != null) {
+                try {
+                    json.decodeFromString<List<ExpenseListInfo>>(listsJson)
+                } catch (e: Exception) {
+                    listOf(ExpenseListInfo("current", "Live"))
+                }
+            } else {
+                listOf(ExpenseListInfo("current", "Live"))
+            }
+
+            val updatedLists = currentLists.filter { it.id != secondaryListId }.map {
+                if (it.id == "current") it.copy(name = "Live") else it
+            }
+            preferences[PreferencesKeys.EXPENSE_LISTS_JSON] = json.encodeToString(updatedLists)
+            preferences[PreferencesKeys.ACTIVE_LIST_ID] = "current"
+        }
+    }
+
     suspend fun deleteExpenseList(listId: String) {
         if (listId == "current") return
         context.dataStore.edit { preferences ->
@@ -211,10 +255,10 @@ class MoneySightRepository(private val context: Context) {
                 try {
                     json.decodeFromString<List<ExpenseListInfo>>(currentJson)
                 } catch (e: Exception) {
-                    listOf(ExpenseListInfo("current", "This Month"))
+                    listOf(ExpenseListInfo("current", "Live"))
                 }
             } else {
-                listOf(ExpenseListInfo("current", "This Month"))
+                listOf(ExpenseListInfo("current", "Live"))
             }
             val updated = currentList.filter { it.id != listId }
             preferences[PreferencesKeys.EXPENSE_LISTS_JSON] = json.encodeToString(updated)

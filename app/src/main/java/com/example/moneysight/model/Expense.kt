@@ -6,7 +6,7 @@ import java.util.UUID
 @Serializable
 data class ExpenseListInfo(
     val id: String = "current",
-    val name: String = "This Month",
+    val name: String = "Live",
     val createdAt: Long = System.currentTimeMillis()
 )
 

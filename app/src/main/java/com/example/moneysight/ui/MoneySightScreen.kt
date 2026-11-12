@@ -921,6 +921,7 @@ fun MoneySightScreen(
             allExpenses = expenses,
             onSelectList = { viewModel.selectExpenseList(it) },
             onCreateNextMonthList = { viewModel.createNextMonthList(it) },
+            onPromoteListToLive = { viewModel.promoteListToLive(it) },
             onDeleteList = { viewModel.deleteExpenseList(it) },
             onDismiss = { viewModel.dismissExpenseListsDialog() }
         )

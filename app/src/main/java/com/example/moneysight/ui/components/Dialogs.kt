@@ -78,6 +78,7 @@ import com.moneysight.app.ui.theme.EntryTeal
 import com.moneysight.app.ui.theme.EntryTealContainer
 import com.moneysight.app.ui.theme.ExpenseRose
 import com.moneysight.app.ui.theme.IncomeGreen
+import com.moneysight.app.ui.theme.IncomeGreenContainer
 import com.moneysight.app.ui.theme.OnChecklistPurple
 import com.moneysight.app.ui.theme.OnEntryTeal
 import com.moneysight.app.ui.theme.ThemeMode
@@ -2664,12 +2665,14 @@ fun ExpenseListsDialog(
     allExpenses: List<Expense>,
     onSelectList: (String) -> Unit,
     onCreateNextMonthList: (String) -> Unit,
+    onPromoteListToLive: (String) -> Unit = {},
     onDeleteList: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var newListNameInput by remember { mutableStateOf("") }
     var showCreateInput by remember { mutableStateOf(false) }
     var listToDelete by remember { mutableStateOf<ExpenseListInfo?>(null) }
+    var listToPromote by remember { mutableStateOf<ExpenseListInfo?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -2793,6 +2796,26 @@ fun ExpenseListsDialog(
 
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (listInfo.id != "current") {
+                                        // "Upgrade to Live" Button
+                                        Button(
+                                            onClick = { listToPromote = listInfo },
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = IncomeGreenContainer,
+                                                contentColor = IncomeGreen
+                                            ),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            modifier = Modifier.height(28.dp)
+                                        ) {
+                                            Text(
+                                                text = "Upgrade to Live ⚡",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 10.sp
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(4.dp))
+
                                         IconButton(
                                             onClick = { listToDelete = listInfo },
                                             modifier = Modifier.size(32.dp)
@@ -2909,6 +2932,82 @@ fun ExpenseListsDialog(
             onDismiss = { listToDelete = null }
         )
     }
+
+    listToPromote?.let { targetList ->
+        ConfirmUpgradeToLiveDialog(
+            listInfo = targetList,
+            onConfirmUpgrade = {
+                onPromoteListToLive(targetList.id)
+                listToPromote = null
+                onDismiss()
+            },
+            onDismiss = { listToPromote = null }
+        )
+    }
+}
+
+/**
+ * Confirmation Dialog before promoting a secondary prepared list to Live.
+ */
+@Composable
+fun ConfirmUpgradeToLiveDialog(
+    listInfo: ExpenseListInfo,
+    onConfirmUpgrade: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ForestSurface,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(IncomeGreenContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("⚡", fontSize = 16.sp)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Upgrade to Live?",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimaryOnDark
+                )
+            }
+        },
+        text = {
+            Text(
+                text = "This will promote all prepared bills in \"${listInfo.name}\" to your active Live expense list. Your current Live expenses will be replaced with these prepared bills.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondaryOnDark
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirmUpgrade,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = IncomeGreen,
+                    contentColor = TextPrimaryOnDark
+                )
+            ) {
+                Text("Upgrade to Live ⚡", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(10.dp),
+                border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
+            ) {
+                Text("Cancel", color = TextSecondaryOnDark)
+            }
+        }
+    )
 }
 
 /**
