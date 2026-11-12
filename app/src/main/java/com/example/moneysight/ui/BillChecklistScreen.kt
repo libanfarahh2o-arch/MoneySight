@@ -162,24 +162,30 @@ fun BillChecklistScreen(
                 onClick = { viewModel.openSimulateGraphDialog() },
                 containerColor = Color(0xFF8E7CC3),
                 contentColor = Color.White,
-                shape = RoundedCornerShape(20.dp),
-                icon = {
+                shape = CircleShape
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF7565A8)),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = Icons.Default.PieChart,
                         contentDescription = "Where Your Money Goes Graph",
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
-                },
-                text = {
-                    Text(
-                        text = "Graph",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = Color.White
-                    )
                 }
-            )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Graph",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
+            }
         },
         topBar = {
             TopAppBar(
