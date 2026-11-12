@@ -31,6 +31,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
@@ -48,6 +49,7 @@ import com.moneysight.app.model.ExpenseListInfo
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.moneysight.app.viewmodel.CategoryBreakdownData
@@ -2137,10 +2139,12 @@ fun ResetAllStampsConfirmationDialog(
 fun SimulateGraphDialog(
     categoryBreakdowns: List<CategoryBreakdownData>,
     totalExpenses: Double,
+    allExpenses: List<Expense> = emptyList(),
     onDismiss: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) } // 0: Pie Chart, 1: Bar Graph, 2: Breakdown
     var selectedGraphCategory by remember { mutableStateOf<CategoryBreakdownData?>(null) }
+    var showCategoryBillsModal by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -2482,6 +2486,26 @@ fun SimulateGraphDialog(
                                                 )
                                             }
                                         }
+
+                                        // Eye Icon Button on Top Right of Graph Box when a category is selected!
+                                        if (selectedGraphCategory != null) {
+                                            IconButton(
+                                                onClick = { showCategoryBillsModal = true },
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .offset(x = 6.dp, y = (-6).dp)
+                                                    .size(36.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Color(0xFFEFE8FC))
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Visibility,
+                                                    contentDescription = "View Bills in Category",
+                                                    tint = Color(0xFF7B61FF),
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        }
                                     }
 
                                     // Scrollable Category Chips below Donut Chart
@@ -2735,6 +2759,164 @@ fun SimulateGraphDialog(
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 Text("Close", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            }
+        }
+    )
+
+    if (showCategoryBillsModal && selectedGraphCategory != null) {
+        val activeCategory = selectedGraphCategory!!
+        val matchingBills = remember(allExpenses, activeCategory.categoryName) {
+            allExpenses.filter { expense ->
+                val expCat = if (expense.category.isNotBlank() && !expense.category.equals("General", ignoreCase = true)) {
+                    expense.category
+                } else {
+                    ExpenseCategories.getCategoryForExpense(expense.description)
+                }
+                expCat.equals(activeCategory.categoryName, ignoreCase = true) || expense.description.contains(activeCategory.categoryName, ignoreCase = true)
+            }
+        }
+
+        CategoryBillsModal(
+            categoryName = activeCategory.categoryName,
+            categoryBills = matchingBills,
+            categoryTotal = activeCategory.totalAmount,
+            onDismiss = { showCategoryBillsModal = false }
+        )
+    }
+}
+
+/**
+ * Modal Pop-up displaying all individual bills inside a selected category when the Eye icon is clicked.
+ */
+@Composable
+fun CategoryBillsModal(
+    categoryName: String,
+    categoryBills: List<Expense>,
+    categoryTotal: Double,
+    onDismiss: () -> Unit
+) {
+    val preset = ExpenseCategories.getPresetForCategory(categoryName)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(24.dp),
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(preset.color),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = ExpenseCategories.getCategoryIcon(preset.iconName),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = categoryName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1F1F24),
+                            fontSize = 18.sp
+                        )
+                        Text(
+                            text = "${categoryBills.size} bill${if (categoryBills.size != 1) "s" else ""} • -${CurrencyUtils.formatPounds(categoryTotal)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = preset.color,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+        },
+        text = {
+            if (categoryBills.isEmpty()) {
+                Text(
+                    text = "No bills found in this category.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF6E6D7A)
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(categoryBills, key = { it.id }) { expense ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F3FF))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = expense.description,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1F1F24),
+                                        fontSize = 14.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Group: ${expense.groupName}${if (expense.dueDate.isNotBlank()) " • Due: ${expense.dueDate}" else ""}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF6E6D7A),
+                                        fontSize = 11.5.sp
+                                    )
+                                    if (expense.notes.isNotBlank()) {
+                                        Text(
+                                            text = "Note: ${expense.notes}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFF7B61FF),
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                }
+
+                                Text(
+                                    text = "-${CurrencyUtils.formatPounds(expense.amount)}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = preset.color,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF8E7CC3),
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Close", fontWeight = FontWeight.Bold)
             }
         }
     )

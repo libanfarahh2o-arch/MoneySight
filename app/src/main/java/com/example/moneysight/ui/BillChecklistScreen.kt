@@ -876,6 +876,7 @@ fun BillChecklistScreen(
         SimulateGraphDialog(
             categoryBreakdowns = categoryBreakdowns,
             totalExpenses = totalExpenses,
+            allExpenses = checklistExpenses,
             onDismiss = { viewModel.dismissSimulateGraphDialog() }
         )
     }
