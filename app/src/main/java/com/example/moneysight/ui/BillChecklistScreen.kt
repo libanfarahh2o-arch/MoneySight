@@ -191,7 +191,7 @@ fun BillChecklistScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Preview",
+                            text = "Simulate",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimaryOnDark

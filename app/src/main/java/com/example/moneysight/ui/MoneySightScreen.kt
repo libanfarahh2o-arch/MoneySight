@@ -234,7 +234,7 @@ fun MoneySightScreen(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Preview",
+                    text = "Simulate",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = Color.White
