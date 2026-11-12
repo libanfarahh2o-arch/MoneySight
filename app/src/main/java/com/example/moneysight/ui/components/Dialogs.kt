@@ -2564,7 +2564,7 @@ fun SimulateGraphDialog(
                             }
 
                             1 -> {
-                                // Tab 2: Bar Graph
+                                // Tab 2: Bar Graph (Shows ALL live categories with horizontal scroll)
                                 Card(
                                     modifier = Modifier.fillMaxSize(),
                                     shape = RoundedCornerShape(20.dp),
@@ -2577,28 +2577,26 @@ fun SimulateGraphDialog(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        val top5Categories = remember(categoryBreakdowns) {
-                                            categoryBreakdowns.take(5)
-                                        }
-                                        val maxAmount = remember(top5Categories) {
-                                            top5Categories.maxOfOrNull { it.totalAmount } ?: 1.0
+                                        val maxAmount = remember(categoryBreakdowns) {
+                                            categoryBreakdowns.maxOfOrNull { it.totalAmount } ?: 1.0
                                         }
 
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(220.dp),
-                                            horizontalArrangement = Arrangement.SpaceEvenly,
+                                                .height(220.dp)
+                                                .horizontalScroll(rememberScrollState()),
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
                                             verticalAlignment = Alignment.Bottom
                                         ) {
-                                            top5Categories.forEach { item ->
+                                            categoryBreakdowns.forEach { item ->
                                                 val preset = ExpenseCategories.getPresetForCategory(item.categoryName)
                                                 val barFraction = (item.totalAmount / maxAmount).toFloat().coerceIn(0.12f, 1f)
 
                                                 Column(
                                                     horizontalAlignment = Alignment.CenterHorizontally,
                                                     verticalArrangement = Arrangement.Bottom,
-                                                    modifier = Modifier.weight(1f)
+                                                    modifier = Modifier.width(52.dp)
                                                 ) {
                                                     // Pill Badge Amount Above Bar
                                                     Box(
@@ -2611,7 +2609,8 @@ fun SimulateGraphDialog(
                                                             text = "£${item.totalAmount.toInt()}",
                                                             fontWeight = FontWeight.Bold,
                                                             color = preset.color,
-                                                            fontSize = 10.5.sp
+                                                            fontSize = 10.sp,
+                                                            maxLines = 1
                                                         )
                                                     }
 
@@ -2620,7 +2619,7 @@ fun SimulateGraphDialog(
                                                     // Vertical Bar
                                                     Box(
                                                         modifier = Modifier
-                                                            .width(36.dp)
+                                                            .width(32.dp)
                                                             .fillMaxHeight(fraction = barFraction * 0.72f)
                                                             .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                                                             .background(preset.color)
