@@ -2663,6 +2663,7 @@ fun ExpenseListsDialog(
 ) {
     var newListNameInput by remember { mutableStateOf("") }
     var showCreateInput by remember { mutableStateOf(false) }
+    var listToDelete by remember { mutableStateOf<ExpenseListInfo?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -2787,7 +2788,7 @@ fun ExpenseListsDialog(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (listInfo.id != "current") {
                                         IconButton(
-                                            onClick = { onDeleteList(listInfo.id) },
+                                            onClick = { listToDelete = listInfo },
                                             modifier = Modifier.size(32.dp)
                                         ) {
                                             Icon(
@@ -2888,6 +2889,78 @@ fun ExpenseListsDialog(
                 border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
             ) {
                 Text("Close", color = TextSecondaryOnDark, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
+
+    listToDelete?.let { targetList ->
+        DeleteMonthListConfirmationDialog(
+            listInfo = targetList,
+            onConfirmDelete = {
+                onDeleteList(targetList.id)
+                listToDelete = null
+            },
+            onDismiss = { listToDelete = null }
+        )
+    }
+}
+
+/**
+ * Confirmation Dialog before deleting a Monthly Expense List.
+ */
+@Composable
+fun DeleteMonthListConfirmationDialog(
+    listInfo: ExpenseListInfo,
+    onConfirmDelete: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ForestSurface,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.DeleteOutline,
+                    contentDescription = null,
+                    tint = WarningRed,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Delete Monthly List?",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimaryOnDark
+                )
+            }
+        },
+        text = {
+            Text(
+                text = "Are you sure you want to delete \"${listInfo.name}\"? This will permanently delete this monthly list and all bills created within it.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondaryOnDark
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirmDelete,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = WarningRed,
+                    contentColor = TextPrimaryOnDark
+                )
+            ) {
+                Text("Delete List", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(10.dp),
+                border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
+            ) {
+                Text("Cancel", color = TextSecondaryOnDark)
             }
         }
     )
