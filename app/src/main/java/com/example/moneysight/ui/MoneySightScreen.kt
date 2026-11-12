@@ -75,6 +75,7 @@ import com.moneysight.app.ui.components.OverbudgetWarningDialog
 import com.moneysight.app.ui.components.ResetAllStampsConfirmationDialog
 import com.moneysight.app.ui.components.SelectBillToEditDialog
 import com.moneysight.app.ui.components.SettingsDialog
+import androidx.compose.ui.graphics.Color
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
 import com.moneysight.app.ui.theme.ChecklistPurpleLight
 import com.moneysight.app.ui.theme.ChecklistPurplePrimary
@@ -209,8 +210,8 @@ fun MoneySightScreen(
             // Floating Flex Button on bottom right
             ExtendedFloatingActionButton(
                 onClick = { viewModel.navigateTo(AppScreen.BILL_CHECKLIST) },
-                containerColor = ChecklistPurplePrimary,
-                contentColor = OnChecklistPurple,
+                containerColor = Color(0xFF8E7CC3),
+                contentColor = Color.White,
                 shape = CircleShape,
                 modifier = Modifier
                     .navigationBarsPadding()
@@ -221,13 +222,13 @@ fun MoneySightScreen(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(ChecklistPurpleContainer),
+                        .background(Color(0xFF7565A8)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.FactCheck,
                         contentDescription = null,
-                        tint = ChecklistPurpleLight,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -236,7 +237,7 @@ fun MoneySightScreen(
                     text = "Preview",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = OnChecklistPurple
+                    color = Color.White
                 )
             }
         }
