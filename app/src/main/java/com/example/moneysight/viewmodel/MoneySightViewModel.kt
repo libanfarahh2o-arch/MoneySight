@@ -553,6 +553,13 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     private val _editDueDateInput = MutableStateFlow("")
     val editDueDateInput: StateFlow<String> = _editDueDateInput.asStateFlow()
 
+    private val _editCategoryInput = MutableStateFlow("General")
+    val editCategoryInput: StateFlow<String> = _editCategoryInput.asStateFlow()
+
+    fun onEditCategoryInputChanged(category: String) {
+        _editCategoryInput.value = category
+    }
+
     private val _pendingOverbudgetEdit = MutableStateFlow<Expense?>(null)
     val pendingOverbudgetEdit: StateFlow<Expense?> = _pendingOverbudgetEdit.asStateFlow()
 
@@ -847,10 +854,12 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         val groupId = _selectedGroupIdForNewExpense.value
         val group = expenseGroups.value.find { it.id == groupId } ?: ExpenseGroup.DEFAULT_GENERAL
         val dueDate = _dueDateInput.value.trim()
+        val categoryVal = _selectedCategoryForNewExpense.value.ifBlank { ExpenseCategories.getCategoryForExpense(description) }
 
         val newExpense = Expense(
             description = description,
             amount = amount,
+            category = categoryVal,
             groupId = group.id,
             groupName = group.name,
             dueDate = dueDate,
@@ -987,6 +996,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _expenseToEdit.value = expense
         _editDescriptionInput.value = expense.description
         _editAmountInput.value = expense.amount.toString()
+        _editCategoryInput.value = if (expense.category.isNotBlank() && expense.category != "General") expense.category else ExpenseCategories.getCategoryForExpense(expense.description)
         _editGroupIdInput.value = expense.groupId
         _editNotesInput.value = expense.notes
         _editDueDateInput.value = expense.dueDate
@@ -1030,6 +1040,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         val updated = original.copy(
             description = newDesc,
             amount = newAmount,
+            category = _editCategoryInput.value,
             groupId = group.id,
             groupName = group.name,
             notes = _editNotesInput.value.trim(),
@@ -1079,24 +1090,34 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     // Graph / Analytics Breakdown State
     val categoryBreakdownList: StateFlow<List<CategoryBreakdownData>> = combine(
         expenses,
-        totalExpenses
-    ) { list, total ->
+        totalExpenses,
+        selectedPresets
+    ) { list, total, tickedPresets ->
         if (list.isEmpty() || total <= 0) {
             emptyList()
         } else {
-            val grouped = list.groupBy { expense ->
-                ExpenseCategories.getCategoryForExpense(expense.description)
+            val filteredExpenses = list.filter { expense ->
+                val catName = ExpenseCategories.getCategoryForExpense(expense.description)
+                tickedPresets.contains(catName)
             }
-            grouped.map { (catName, catExpenses) ->
-                val catTotal = catExpenses.sumOf { it.amount }
-                val pct = ((catTotal / total) * 100.0).toFloat()
-                CategoryBreakdownData(
-                    categoryName = catName,
-                    billCount = catExpenses.size,
-                    totalAmount = catTotal,
-                    percentage = pct
-                )
-            }.sortedByDescending { it.totalAmount }
+            val filteredTotal = filteredExpenses.sumOf { it.amount }
+            if (filteredExpenses.isEmpty() || filteredTotal <= 0) {
+                emptyList()
+            } else {
+                val grouped = filteredExpenses.groupBy { expense ->
+                    ExpenseCategories.getCategoryForExpense(expense.description)
+                }
+                grouped.map { (catName, catExpenses) ->
+                    val catTotal = catExpenses.sumOf { it.amount }
+                    val pct = ((catTotal / filteredTotal) * 100.0).toFloat()
+                    CategoryBreakdownData(
+                        categoryName = catName,
+                        billCount = catExpenses.size,
+                        totalAmount = catTotal,
+                        percentage = pct
+                    )
+                }.sortedByDescending { it.totalAmount }
+            }
         }
     }.stateIn(
         scope = viewModelScope,

@@ -150,6 +150,7 @@ fun MoneySightScreen(
     val editGroupIdInput by viewModel.editGroupIdInput.collectAsStateWithLifecycle()
     val editNotesInput by viewModel.editNotesInput.collectAsStateWithLifecycle()
     val editDueDateInput by viewModel.editDueDateInput.collectAsStateWithLifecycle()
+    val editCategoryInput by viewModel.editCategoryInput.collectAsStateWithLifecycle()
     val dueDateInput by viewModel.dueDateInput.collectAsStateWithLifecycle()
     val selectedCategoryForNewExpense by viewModel.selectedCategoryForNewExpense.collectAsStateWithLifecycle()
     val pendingOverbudgetEdit by viewModel.pendingOverbudgetEdit.collectAsStateWithLifecycle()
@@ -267,6 +268,8 @@ fun MoneySightScreen(
                     selectedCategory = selectedCategoryForNewExpense,
                     selectedGroupId = selectedGroupIdForNewExpense,
                     groups = expenseGroups,
+                    selectedPresets = selectedPresets,
+                    customPresets = customPresets,
                     isSubmitting = isSubmitting,
                     isExpanded = isEntryExpanded,
                     onToggleExpand = { isEntryExpanded = !isEntryExpanded },
@@ -738,12 +741,16 @@ fun MoneySightScreen(
             amountInput = editAmountInput,
             notesInput = editNotesInput,
             dueDateInput = editDueDateInput,
+            selectedCategory = editCategoryInput,
             selectedGroupId = editGroupIdInput,
             groups = expenseGroups,
+            selectedPresets = selectedPresets,
+            customPresets = customPresets,
             onDescriptionChanged = { viewModel.onEditDescriptionChanged(it) },
             onAmountChanged = { viewModel.onEditAmountChanged(it) },
             onNotesChanged = { viewModel.onEditNotesChanged(it) },
             onDueDateChanged = { viewModel.onEditDueDateInputChanged(it) },
+            onCategoryChanged = { viewModel.onEditCategoryInputChanged(it) },
             onGroupIdChanged = { viewModel.onEditGroupIdChanged(it) },
             onConfirm = { viewModel.saveEditExpenseSubmitted() },
             onDelete = {

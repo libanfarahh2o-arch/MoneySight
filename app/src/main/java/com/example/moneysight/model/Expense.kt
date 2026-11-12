@@ -15,6 +15,7 @@ data class Expense(
     val id: String = UUID.randomUUID().toString(),
     val description: String,
     val amount: Double,
+    val category: String = "General",
     val groupId: String = "general",
     val groupName: String = "General",
     val isPaid: Boolean = false,

@@ -100,8 +100,16 @@ fun ExpenseItem(
                     verticalAlignment = Alignment.Top,
                     modifier = Modifier.weight(1f)
                 ) {
-                    val categoryPreset = remember(expense.description) {
-                        ExpenseCategories.getPresetForCategory(expense.description)
+                    val categoryName = remember(expense.category, expense.description) {
+                        if (expense.category.isNotBlank() && !expense.category.equals("General", ignoreCase = true)) {
+                            expense.category
+                        } else {
+                            ExpenseCategories.getCategoryForExpense(expense.description)
+                        }
+                    }
+
+                    val categoryPreset = remember(categoryName) {
+                        ExpenseCategories.getPresetForCategory(categoryName)
                     }
 
                     Box(

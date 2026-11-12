@@ -78,6 +78,8 @@ fun AddExpenseSection(
     selectedCategory: String = "General",
     selectedGroupId: String,
     groups: List<ExpenseGroup>,
+    selectedPresets: Set<String> = emptySet(),
+    customPresets: List<String> = emptyList(),
     isSubmitting: Boolean,
     isExpanded: Boolean,
     onToggleExpand: () -> Unit,
@@ -95,6 +97,17 @@ fun AddExpenseSection(
     var showCategoryBrowser by remember { mutableStateOf(false) }
     var showGroupBrowser by remember { mutableStateOf(false) }
     var showDateDialog by remember { mutableStateOf(false) }
+
+    val availableCategoryPresets = remember(selectedPresets, customPresets) {
+        val builtIn = ExpenseCategories.categoryGridPresets.filter {
+            selectedPresets.isEmpty() || selectedPresets.contains(it.title)
+        }
+        val customItems = customPresets.filter { selectedPresets.contains(it) }.map { customTitle ->
+            ExpenseCategories.getPresetForCategory(customTitle)
+        }
+        val combined = (builtIn + customItems).distinctBy { it.title }
+        if (combined.isEmpty()) ExpenseCategories.categoryGridPresets else combined
+    }
 
     val selectedGroup = remember(selectedGroupId, groups) {
         groups.find { it.id == selectedGroupId } ?: ExpenseGroup.DEFAULT_GENERAL
@@ -490,7 +503,7 @@ fun AddExpenseSection(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(ExpenseCategories.categoryGridPresets, key = { it.title }) { preset ->
+                    items(availableCategoryPresets, key = { it.title }) { preset ->
                         val isSelected = selectedCategory.equals(preset.title, ignoreCase = true)
 
                         Box(
