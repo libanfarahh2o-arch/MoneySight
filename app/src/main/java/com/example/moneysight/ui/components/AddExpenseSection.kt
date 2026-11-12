@@ -462,20 +462,21 @@ fun AddExpenseSection(
             containerColor = Color.White,
             shape = RoundedCornerShape(28.dp),
             title = {
-                Box(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.GridView,
                             contentDescription = null,
                             tint = Color(0xFF00796B),
-                            modifier = Modifier.size(26.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Select Category Preset",
+                            text = "Select Category",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF002920)
@@ -483,8 +484,8 @@ fun AddExpenseSection(
                     }
 
                     Text(
-                        text = "Choose a category",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = "+ Manage",
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF00796B),
                         modifier = Modifier.clickable {

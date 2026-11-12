@@ -1172,7 +1172,7 @@ fun EditExpenseDialog(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Select Category Preset",
+                        text = "Select Category",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF002920)
