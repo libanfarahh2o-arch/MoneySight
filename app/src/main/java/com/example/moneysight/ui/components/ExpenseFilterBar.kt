@@ -69,6 +69,7 @@ fun ExpenseFilterBar(
     selectedGroupId: String?,
     groups: List<ExpenseGroup>,
     selectedSortOrder: ExpenseSortOrder,
+    activeListName: String = "This Month",
     onSearchQueryChanged: (String) -> Unit,
     onCategorySelected: (String?) -> Unit,
     onGroupSelected: (String?) -> Unit,
@@ -230,7 +231,7 @@ fun ExpenseFilterBar(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Months",
+                        text = activeListName,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = EntryTeal,

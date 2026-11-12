@@ -183,6 +183,10 @@ fun MoneySightScreen(
     val expenseLists by viewModel.expenseLists.collectAsStateWithLifecycle()
     val showExpenseListsDialog by viewModel.showExpenseListsDialog.collectAsStateWithLifecycle()
 
+    val activeListName = remember(activeListId, expenseLists) {
+        expenseLists.find { it.id == activeListId }?.name ?: "This Month"
+    }
+
     // Reset Stamp Mode to OFF when leaving main screen or when app is paused/backgrounded
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -327,6 +331,21 @@ fun MoneySightScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimaryOnDark
                                 )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(EntryTealContainer)
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = activeListName,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = EntryTeal,
+                                        fontSize = 10.sp
+                                    )
+                                }
                                 if (expenses.isNotEmpty()) {
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Box(
@@ -490,6 +509,7 @@ fun MoneySightScreen(
                             selectedGroupId = selectedGroupFilterId,
                             groups = expenseGroups,
                             selectedSortOrder = selectedSortOrder,
+                            activeListName = activeListName,
                             onSearchQueryChanged = { viewModel.onExpenseSearchQueryChanged(it) },
                             onCategorySelected = { viewModel.onCategoryFilterSelected(it) },
                             onGroupSelected = { viewModel.selectGroupFilter(it) },
