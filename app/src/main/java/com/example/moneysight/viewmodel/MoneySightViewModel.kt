@@ -23,10 +23,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 enum class ExpenseSortOrder(val label: String) {
-    EARLIEST_DUE("Earliest Bill to Pay"),
-    ALPHABETICAL("Alphabetical (A-Z)"),
     AMOUNT_HIGH_LOW("Highest Amount"),
-    AMOUNT_LOW_HIGH("Lowest Amount")
+    AMOUNT_LOW_HIGH("Lowest Amount"),
+    ALPHABETICAL("Alphabetical (A-Z)")
 }
 
 enum class ChecklistFilter(val label: String) {
@@ -374,7 +373,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     private val _expenseSearchQuery = MutableStateFlow("")
     val expenseSearchQuery: StateFlow<String> = _expenseSearchQuery.asStateFlow()
 
-    private val _selectedSortOrder = MutableStateFlow(ExpenseSortOrder.EARLIEST_DUE)
+    private val _selectedSortOrder = MutableStateFlow(ExpenseSortOrder.AMOUNT_HIGH_LOW)
     val selectedSortOrder: StateFlow<ExpenseSortOrder> = _selectedSortOrder.asStateFlow()
 
     private val _mainExpenseStampFilter = MutableStateFlow(MainExpenseStampFilter.SPENT_ALL)
@@ -443,20 +442,9 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
 
         // 4. Sorting & Filter Rules
         when (sort) {
-            ExpenseSortOrder.EARLIEST_DUE -> {
-                // Priority 0: Unstamped upcoming due dates (on top first)
-                // Priority 1: Unstamped past due dates (after upcoming)
-                // Priority 2: Bills without due dates
-                // Priority 3: Stamped bills
-                result.sortedWith(
-                    compareBy<Expense> { getEarliestDuePriorityRank(it) }
-                        .thenBy { parseDueDayNumber(it.dueDate) }
-                        .thenByDescending { it.timestamp }
-                )
-            }
-            ExpenseSortOrder.ALPHABETICAL -> result.sortedBy { it.description.lowercase() }
             ExpenseSortOrder.AMOUNT_HIGH_LOW -> result.sortedByDescending { it.amount }
             ExpenseSortOrder.AMOUNT_LOW_HIGH -> result.sortedBy { it.amount }
+            ExpenseSortOrder.ALPHABETICAL -> result.sortedBy { it.description.lowercase() }
         }
     }.stateIn(
         scope = viewModelScope,
@@ -846,7 +834,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _selectedCategoryFilter.value = null
         _selectedGroupFilterId.value = null
         _expenseSearchQuery.value = ""
-        _selectedSortOrder.value = ExpenseSortOrder.EARLIEST_DUE
+        _selectedSortOrder.value = ExpenseSortOrder.AMOUNT_HIGH_LOW
         _mainExpenseStampFilter.value = MainExpenseStampFilter.SPENT_ALL
     }
 
