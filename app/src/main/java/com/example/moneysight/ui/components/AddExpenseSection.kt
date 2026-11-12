@@ -584,24 +584,12 @@ fun AddExpenseSection(
                         contentColor = Color.White
                     )
                 ) {
-                    Button(
-                        onClick = { showCategoryBrowser = false },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = EntryTeal,
-                            contentColor = OnEntryTeal
-                        )
-                    ) {
-                        Text(
-                            text = "Done",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                    }
+                    Text(
+                        text = "Done",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
                 }
             }
         )

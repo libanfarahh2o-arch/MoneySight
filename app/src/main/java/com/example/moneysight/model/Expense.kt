@@ -18,7 +18,6 @@ data class Expense(
     val category: String = "General",
     val groupId: String = "general",
     val groupName: String = "General",
-    val category: String = "Expenses",
     val isPaid: Boolean = false,
     val isStamped: Boolean = false,
     val notes: String = "",

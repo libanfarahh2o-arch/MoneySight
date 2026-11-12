@@ -505,31 +505,6 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = 0.0
     )
 
-    // Where Your Money Goes Category Breakdown Flow (Synced with Main Page Expenses & Presets)
-    val categoryBreakdownList: StateFlow<List<CategoryBreakdownData>> = expenses.map { list ->
-        val totalSum = list.sumOf { it.amount }
-        if (totalSum <= 0) return@map emptyList()
-
-        val grouped = list.groupBy { expense ->
-            ExpenseCategories.getCategoryForExpense(expense.description)
-        }
-
-        grouped.map { (catName, catExpenses) ->
-            val catSum = catExpenses.sumOf { it.amount }
-            val pct = ((catSum / totalSum) * 100).toFloat()
-            CategoryBreakdownData(
-                categoryName = catName,
-                totalAmount = catSum,
-                percentage = pct,
-                billCount = catExpenses.size
-            )
-        }.sortedByDescending { it.totalAmount }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
-
     // Expense Form Inputs
     private val _descriptionInput = MutableStateFlow("")
     val descriptionInput: StateFlow<String> = _descriptionInput.asStateFlow()
@@ -1097,10 +1072,9 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         val updated = original.copy(
             description = newDesc,
             amount = newAmount,
-            category = _editCategoryInput.value,
+            category = _editCategoryInput.value.ifBlank { "Expenses" },
             groupId = group.id,
             groupName = group.name,
-            category = _editCategoryInput.value.ifBlank { "Expenses" },
             notes = _editNotesInput.value.trim(),
             dueDate = _editDueDateInput.value.trim()
         )
@@ -1193,26 +1167,8 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = emptyList()
     )
 
-    private val _showSimulateGraphDialog = MutableStateFlow(false)
-    val showSimulateGraphDialog: StateFlow<Boolean> = _showSimulateGraphDialog.asStateFlow()
-
-    fun openSimulateGraphDialog() {
-        _showSimulateGraphDialog.value = true
-    }
-
-    fun dismissSimulateGraphDialog() {
-        _showSimulateGraphDialog.value = false
-    }
-
     private fun String?.isNullBLankOrAll(): Boolean {
         return this.isNullOrBlank() || this.equals("ALL", ignoreCase = true)
     }
 }
-
-data class CategoryBreakdownData(
-    val categoryName: String,
-    val billCount: Int,
-    val totalAmount: Double,
-    val percentage: Float
-)
 

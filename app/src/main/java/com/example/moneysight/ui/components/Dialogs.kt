@@ -96,7 +96,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -105,7 +104,6 @@ import com.moneysight.app.model.ExpenseGroup
 import com.moneysight.app.model.IncomeSource
 import com.moneysight.app.ui.theme.ForestCardBorder
 import com.moneysight.app.ui.theme.ForestSurface
-import com.moneysight.app.viewmodel.CategoryBreakdownData
 import com.moneysight.app.ui.theme.ForestSurfaceVariant
 import com.moneysight.app.ui.theme.MintGreenDark
 import com.moneysight.app.ui.theme.MintGreenPrimary

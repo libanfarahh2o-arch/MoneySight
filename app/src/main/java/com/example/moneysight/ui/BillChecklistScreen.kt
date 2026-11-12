@@ -143,8 +143,6 @@ fun BillChecklistScreen(
     val categoryBreakdowns by viewModel.categoryBreakdownList.collectAsStateWithLifecycle()
     val showSimulateGraphDialog by viewModel.showSimulateGraphDialog.collectAsStateWithLifecycle()
     val showResetAllBillsDialog by viewModel.showResetAllBillsDialog.collectAsStateWithLifecycle()
-    val showSimulateGraphDialog by viewModel.showSimulateGraphDialog.collectAsStateWithLifecycle()
-    val categoryBreakdowns by viewModel.categoryBreakdownList.collectAsStateWithLifecycle()
 
     // Map tracking expanded state for each group (collapsed by default)
     val expandedGroupsMap = remember { mutableStateMapOf<String, Boolean>() }

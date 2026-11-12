@@ -83,7 +83,6 @@ import com.moneysight.app.ui.components.OverbudgetWarningDialog
 import com.moneysight.app.ui.components.ResetAllStampsConfirmationDialog
 import com.moneysight.app.ui.components.SelectBillToEditDialog
 import com.moneysight.app.ui.components.SettingsDialog
-import androidx.compose.ui.graphics.Color
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
 import com.moneysight.app.ui.theme.ChecklistPurpleLight
 import com.moneysight.app.ui.theme.ChecklistPurplePrimary
