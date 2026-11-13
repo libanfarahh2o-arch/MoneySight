@@ -2281,7 +2281,7 @@ fun SimulateGraphDialog(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (selectedTab == 0) Color(0xFF8E7CC3) else Color.Transparent)
+                            .background(if (selectedTab == 0) Color(0xFF6C5CE7) else Color.Transparent)
                             .clickable { selectedTab = 0 }
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center
@@ -2308,7 +2308,7 @@ fun SimulateGraphDialog(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (selectedTab == 1) Color(0xFF8E7CC3) else Color.Transparent)
+                            .background(if (selectedTab == 1) Color(0xFF6C5CE7) else Color.Transparent)
                             .clickable { selectedTab = 1 }
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center
@@ -2335,7 +2335,7 @@ fun SimulateGraphDialog(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (selectedTab == 2) Color(0xFF8E7CC3) else Color.Transparent)
+                            .background(if (selectedTab == 2) Color(0xFF6C5CE7) else Color.Transparent)
                             .clickable { selectedTab = 2 }
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center
@@ -2781,7 +2781,7 @@ fun SimulateGraphDialog(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8E7CC3),
+                    containerColor = Color(0xFF6C5CE7),
                     contentColor = Color.White
                 ),
                 contentPadding = PaddingValues(vertical = 12.dp)
@@ -2940,7 +2940,7 @@ fun CategoryBillsModal(
                 onClick = onDismiss,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8E7CC3),
+                    containerColor = Color(0xFF6C5CE7),
                     contentColor = Color.White
                 )
             ) {

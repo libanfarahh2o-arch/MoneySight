@@ -160,7 +160,7 @@ fun BillChecklistScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { viewModel.openSimulateGraphDialog() },
-                containerColor = Color(0xFF8E7CC3),
+                containerColor = Color(0xFF6C5CE7),
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
@@ -168,7 +168,7 @@ fun BillChecklistScreen(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF7565A8)),
+                        .background(Color(0xFF5A49D6)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -220,7 +220,7 @@ fun BillChecklistScreen(
                         Icon(
                             imageVector = Icons.Default.PieChart,
                             contentDescription = "Where Your Money Goes Graph",
-                            tint = ChecklistPurplePrimary
+                            tint = Color(0xFF6C5CE7)
                         )
                     }
                     IconButton(onClick = { viewModel.openResetAllBillsDialog() }) {
