@@ -68,6 +68,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moneysight.app.model.ExpenseGroup
+import com.moneysight.app.ui.theme.EntryBorder
+import com.moneysight.app.ui.theme.EntrySurface
+import com.moneysight.app.ui.theme.EntryTeal
+import com.moneysight.app.ui.theme.ForestSurfaceVariant
+import com.moneysight.app.ui.theme.LocalMoneySightColors
+import com.moneysight.app.ui.theme.OnEntryTeal
+import com.moneysight.app.ui.theme.TextMutedOnDark
+import com.moneysight.app.ui.theme.TextPrimaryOnDark
+import com.moneysight.app.ui.theme.TextSecondaryOnDark
 import com.moneysight.app.util.ExpenseCategories
 import com.moneysight.app.util.ExpenseCategory
 
@@ -118,11 +127,19 @@ fun AddExpenseSection(
         ExpenseCategories.getPresetForCategory(selectedCategory)
     }
 
+    val isDark = LocalMoneySightColors.current.isDark
+    val cardBg = if (isDark) EntrySurface else Color(0xFFEBF8F5)
+    val cardBorderColor = if (isDark) EntryBorder else Color(0xFFA2E2D2)
+    val inputFieldBg = if (isDark) ForestSurfaceVariant else Color(0xFFE2ECE8)
+    val textPrimaryColor = if (isDark) TextPrimaryOnDark else Color(0xFF0B2822)
+    val textSecondaryColor = if (isDark) TextSecondaryOnDark else Color(0xFF4B635C)
+    val tealAccentColor = if (isDark) EntryTeal else Color(0xFF00796B)
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF8F5)),
-        border = BorderStroke(1.5.dp, Color(0xFFA2E2D2))
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        border = BorderStroke(1.5.dp, cardBorderColor)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -140,14 +157,14 @@ fun AddExpenseSection(
                         text = "Where is your money going?",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0B2822),
+                        color = textPrimaryColor,
                         fontSize = 20.sp
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "Expense details",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF4B635C),
+                        color = textSecondaryColor,
                         fontSize = 14.sp
                     )
                 }
@@ -159,7 +176,7 @@ fun AddExpenseSection(
                     Icon(
                         imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = if (isExpanded) "Collapse Form" else "Expand Form",
-                        tint = Color(0xFF0B2822),
+                        tint = textPrimaryColor,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -183,7 +200,7 @@ fun AddExpenseSection(
                         placeholder = {
                             Text(
                                 "What is this expense for?",
-                                color = Color(0xFF719688),
+                                color = TextMutedOnDark,
                                 fontSize = 15.sp
                             )
                         },
@@ -194,13 +211,13 @@ fun AddExpenseSection(
                         ),
                         shape = RoundedCornerShape(18.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFFE2ECE8),
-                            unfocusedContainerColor = Color(0xFFE2ECE8),
-                            focusedBorderColor = Color(0xFF00796B),
+                            focusedContainerColor = inputFieldBg,
+                            unfocusedContainerColor = inputFieldBg,
+                            focusedBorderColor = tealAccentColor,
                             unfocusedBorderColor = Color.Transparent,
-                            focusedTextColor = Color(0xFF0B2822),
-                            unfocusedTextColor = Color(0xFF0B2822),
-                            cursorColor = Color(0xFF00796B)
+                            focusedTextColor = textPrimaryColor,
+                            unfocusedTextColor = textPrimaryColor,
+                            cursorColor = tealAccentColor
                         )
                     )
 
@@ -216,7 +233,7 @@ fun AddExpenseSection(
                                 .weight(1f)
                                 .height(58.dp)
                                 .clip(RoundedCornerShape(18.dp))
-                                .background(Color(0xFFE2ECE8))
+                                .background(inputFieldBg)
                                 .clickable { showCategoryBrowser = true }
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             contentAlignment = Alignment.CenterStart
@@ -233,13 +250,13 @@ fun AddExpenseSection(
                                     Text(
                                         text = "Category",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color(0xFF4B635C),
+                                        color = textSecondaryColor,
                                         fontSize = 11.5.sp
                                     )
                                     Icon(
                                         imageVector = Icons.Default.KeyboardArrowDown,
                                         contentDescription = null,
-                                        tint = Color(0xFF0B2822),
+                                        tint = textPrimaryColor,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -269,7 +286,7 @@ fun AddExpenseSection(
                                         text = selectedCategory,
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF0B2822),
+                                        color = textPrimaryColor,
                                         fontSize = 13.5.sp,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -284,7 +301,7 @@ fun AddExpenseSection(
                                 .weight(1f)
                                 .height(58.dp)
                                 .clip(RoundedCornerShape(18.dp))
-                                .background(Color(0xFFE2ECE8))
+                                .background(inputFieldBg)
                                 .clickable { showGroupBrowser = true }
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             contentAlignment = Alignment.CenterStart
@@ -301,13 +318,13 @@ fun AddExpenseSection(
                                     Text(
                                         text = "Group",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color(0xFF4B635C),
+                                        color = textSecondaryColor,
                                         fontSize = 11.5.sp
                                     )
                                     Icon(
                                         imageVector = Icons.Default.KeyboardArrowDown,
                                         contentDescription = null,
-                                        tint = Color(0xFF0B2822),
+                                        tint = textPrimaryColor,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -321,7 +338,7 @@ fun AddExpenseSection(
                                     Icon(
                                         imageVector = Icons.Default.Groups,
                                         contentDescription = null,
-                                        tint = Color(0xFF00796B),
+                                        tint = tealAccentColor,
                                         modifier = Modifier.size(18.dp)
                                     )
 
@@ -329,7 +346,7 @@ fun AddExpenseSection(
                                         text = selectedGroup.name,
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF0B2822),
+                                        color = textPrimaryColor,
                                         fontSize = 13.5.sp,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -343,14 +360,14 @@ fun AddExpenseSection(
                             modifier = Modifier
                                 .size(width = 58.dp, height = 58.dp)
                                 .clip(RoundedCornerShape(18.dp))
-                                .background(Color(0xFFE2ECE8))
+                                .background(inputFieldBg)
                                 .clickable { showDateDialog = true },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CalendarToday,
                                 contentDescription = "Due Date",
-                                tint = Color(0xFF00796B),
+                                tint = tealAccentColor,
                                 modifier = Modifier.size(22.dp)
                             )
                         }

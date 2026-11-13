@@ -84,6 +84,7 @@ import com.moneysight.app.ui.theme.EntryTealContainer
 import com.moneysight.app.ui.theme.ExpenseRose
 import com.moneysight.app.ui.theme.IncomeGreen
 import com.moneysight.app.ui.theme.IncomeGreenContainer
+import com.moneysight.app.ui.theme.LocalMoneySightColors
 import com.moneysight.app.ui.theme.OnChecklistPurple
 import com.moneysight.app.ui.theme.OnEntryTeal
 import com.moneysight.app.ui.theme.ThemeMode
@@ -2146,9 +2147,16 @@ fun SimulateGraphDialog(
     var selectedGraphCategory by remember { mutableStateOf<CategoryBreakdownData?>(null) }
     var showCategoryBillsModal by remember { mutableStateOf(false) }
 
+    val isDarkGraph = LocalMoneySightColors.current.isDark
+    val dialogBg = ForestSurface
+    val cardBg = ForestSurfaceVariant
+    val textPrimary = TextPrimaryOnDark
+    val textSecondary = TextSecondaryOnDark
+    val pillBg = if (isDarkGraph) ForestSurface else Color.White
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        containerColor = dialogBg,
         shape = RoundedCornerShape(28.dp),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -2156,13 +2164,13 @@ fun SimulateGraphDialog(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFEFE8FC)),
+                        .background(EntryTealContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.PieChart,
                         contentDescription = null,
-                        tint = Color(0xFF7B61FF),
+                        tint = EntryTeal,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -2172,14 +2180,14 @@ fun SimulateGraphDialog(
                         text = "Where Your Money Goes",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F1F24),
+                        color = textPrimary,
                         fontSize = 18.sp
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "Category breakdown synced with live expenses",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF6E6D7A),
+                        color = textSecondary,
                         fontSize = 11.5.sp
                     )
                 }
@@ -2191,7 +2199,7 @@ fun SimulateGraphDialog(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF0EDF9))
+                    colors = CardDefaults.cardColors(containerColor = cardBg)
                 ) {
                     Row(
                         modifier = Modifier
@@ -2205,7 +2213,7 @@ fun SimulateGraphDialog(
                                 text = "TOTAL EXPENSES",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF7B61FF),
+                                color = EntryTeal,
                                 fontSize = 10.sp,
                                 letterSpacing = 0.5.sp
                             )
@@ -2214,7 +2222,7 @@ fun SimulateGraphDialog(
                                 text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF1F1F24),
+                                color = textPrimary,
                                 fontSize = 20.sp
                             )
                         }
@@ -2222,14 +2230,14 @@ fun SimulateGraphDialog(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(Color.White)
+                                .background(pillBg)
                                 .padding(horizontal = 10.dp, vertical = 6.dp)
                         ) {
                             Text(
                                 text = "${categoryBreakdowns.size} Categories",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF7B61FF),
+                                color = EntryTeal,
                                 fontSize = 11.sp
                             )
                         }
@@ -2243,7 +2251,7 @@ fun SimulateGraphDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFFEBF3EF))
+                        .background(cardBg)
                         .padding(4.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -2261,7 +2269,7 @@ fun SimulateGraphDialog(
                             Icon(
                                 imageVector = Icons.Default.PieChart,
                                 contentDescription = "Pie Chart",
-                                tint = if (selectedTab == 0) Color.White else Color(0xFF4B635C),
+                                tint = if (selectedTab == 0) Color.White else textSecondary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -2269,7 +2277,7 @@ fun SimulateGraphDialog(
                                 text = "Pie Chart",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp,
-                                color = if (selectedTab == 0) Color.White else Color(0xFF4B635C)
+                                color = if (selectedTab == 0) Color.White else textSecondary
                             )
                         }
                     }
@@ -2288,7 +2296,7 @@ fun SimulateGraphDialog(
                             Icon(
                                 imageVector = Icons.Default.BarChart,
                                 contentDescription = "Bar Graph",
-                                tint = if (selectedTab == 1) Color.White else Color(0xFF4B635C),
+                                tint = if (selectedTab == 1) Color.White else textSecondary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -2296,7 +2304,7 @@ fun SimulateGraphDialog(
                                 text = "Bar Graph",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp,
-                                color = if (selectedTab == 1) Color.White else Color(0xFF4B635C)
+                                color = if (selectedTab == 1) Color.White else textSecondary
                             )
                         }
                     }
@@ -2315,7 +2323,7 @@ fun SimulateGraphDialog(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ListAlt,
                                 contentDescription = "Breakdown",
-                                tint = if (selectedTab == 2) Color.White else Color(0xFF4B635C),
+                                tint = if (selectedTab == 2) Color.White else textSecondary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -2323,7 +2331,7 @@ fun SimulateGraphDialog(
                                 text = "Breakdown",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp,
-                                color = if (selectedTab == 2) Color.White else Color(0xFF4B635C)
+                                color = if (selectedTab == 2) Color.White else textSecondary
                             )
                         }
                     }
@@ -2452,7 +2460,7 @@ fun SimulateGraphDialog(
                                                     text = "-${CurrencyUtils.formatPounds(active.totalAmount)}",
                                                     style = MaterialTheme.typography.titleMedium,
                                                     fontWeight = FontWeight.ExtraBold,
-                                                    color = Color(0xFF1F1F24),
+                                                    color = textPrimary,
                                                     fontSize = 16.sp
                                                 )
                                                 Text(
@@ -2467,7 +2475,7 @@ fun SimulateGraphDialog(
                                                     text = "TOTAL SPENT",
                                                     style = MaterialTheme.typography.labelSmall,
                                                     fontWeight = FontWeight.Bold,
-                                                    color = Color(0xFF6E6D7A),
+                                                    color = textSecondary,
                                                     fontSize = 9.5.sp
                                                 )
                                                 Spacer(modifier = Modifier.height(2.dp))
@@ -2475,13 +2483,13 @@ fun SimulateGraphDialog(
                                                     text = "-${CurrencyUtils.formatPounds(totalExpenses)}",
                                                     style = MaterialTheme.typography.titleMedium,
                                                     fontWeight = FontWeight.ExtraBold,
-                                                    color = Color(0xFF1F1F24),
+                                                    color = textPrimary,
                                                     fontSize = 16.sp
                                                 )
                                                 Text(
                                                     text = "Tap a slice for details",
                                                     style = MaterialTheme.typography.labelSmall,
-                                                    color = Color(0xFF8E7CC3),
+                                                    color = EntryTeal,
                                                     fontSize = 9.5.sp
                                                 )
                                             }
@@ -2496,12 +2504,12 @@ fun SimulateGraphDialog(
                                                     .offset(x = 6.dp, y = (-6).dp)
                                                     .size(36.dp)
                                                     .clip(CircleShape)
-                                                    .background(Color(0xFFEFE8FC))
+                                                    .background(EntryTealContainer)
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Visibility,
                                                     contentDescription = "View Bills in Category",
-                                                    tint = Color(0xFF7B61FF),
+                                                    tint = EntryTeal,
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -2522,7 +2530,7 @@ fun SimulateGraphDialog(
                                             Box(
                                                 modifier = Modifier
                                                     .clip(RoundedCornerShape(16.dp))
-                                                    .background(if (isSelected) preset.color.copy(alpha = 0.22f) else Color(0xFFEBF5F0))
+                                                    .background(if (isSelected) preset.color.copy(alpha = 0.22f) else cardBg)
                                                     .border(
                                                         width = if (isSelected) 1.5.dp else 0.dp,
                                                         color = if (isSelected) preset.color else Color.Transparent,
@@ -2553,7 +2561,7 @@ fun SimulateGraphDialog(
                                                         text = item.categoryName,
                                                         style = MaterialTheme.typography.labelSmall,
                                                         fontWeight = FontWeight.Bold,
-                                                        color = if (isSelected) preset.color else Color(0xFF1F1F24),
+                                                        color = if (isSelected) preset.color else textPrimary,
                                                         fontSize = 12.sp
                                                     )
                                                 }
@@ -2568,7 +2576,7 @@ fun SimulateGraphDialog(
                                 Card(
                                     modifier = Modifier.fillMaxSize(),
                                     shape = RoundedCornerShape(20.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F0))
+                                    colors = CardDefaults.cardColors(containerColor = cardBg)
                                 ) {
                                     Column(
                                         modifier = Modifier
@@ -2602,7 +2610,7 @@ fun SimulateGraphDialog(
                                                     Box(
                                                         modifier = Modifier
                                                             .clip(RoundedCornerShape(8.dp))
-                                                            .background(Color.White)
+                                                            .background(pillBg)
                                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                                     ) {
                                                         Text(
@@ -2661,7 +2669,7 @@ fun SimulateGraphDialog(
                                         Card(
                                             modifier = Modifier.fillMaxWidth(),
                                             shape = RoundedCornerShape(16.dp),
-                                            colors = CardDefaults.cardColors(containerColor = Color(0xFFEBF5F0))
+                                            colors = CardDefaults.cardColors(containerColor = cardBg)
                                         ) {
                                             Column(modifier = Modifier.padding(12.dp)) {
                                                 Row(
@@ -2689,14 +2697,14 @@ fun SimulateGraphDialog(
                                                             text = item.categoryName,
                                                             style = MaterialTheme.typography.bodyMedium,
                                                             fontWeight = FontWeight.Bold,
-                                                            color = Color(0xFF1F1F24),
+                                                            color = textPrimary,
                                                             fontSize = 13.5.sp
                                                         )
                                                         Spacer(modifier = Modifier.width(4.dp))
                                                         Text(
                                                             text = "(${item.billCount})",
                                                             style = MaterialTheme.typography.labelSmall,
-                                                            color = Color(0xFF6E6D7A),
+                                                            color = textSecondary,
                                                             fontSize = 11.sp
                                                         )
                                                     }
@@ -2706,7 +2714,7 @@ fun SimulateGraphDialog(
                                                             text = "-${CurrencyUtils.formatPounds(item.totalAmount)}",
                                                             style = MaterialTheme.typography.bodyMedium,
                                                             fontWeight = FontWeight.Bold,
-                                                            color = Color(0xFF1F1F24),
+                                                            color = textPrimary,
                                                             fontSize = 13.5.sp
                                                         )
                                                         Text(
@@ -2726,7 +2734,7 @@ fun SimulateGraphDialog(
                                                         .fillMaxWidth()
                                                         .height(7.dp)
                                                         .clip(RoundedCornerShape(4.dp))
-                                                        .background(Color(0xFFE0ECE6))
+                                                        .background(if (isDarkGraph) ForestSurface else Color(0xFFE0ECE6))
                                                 ) {
                                                     Box(
                                                         modifier = Modifier
@@ -2798,7 +2806,7 @@ fun CategoryBillsModal(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        containerColor = ForestSurface,
         shape = RoundedCornerShape(24.dp),
         title = {
             Row(
@@ -2827,7 +2835,7 @@ fun CategoryBillsModal(
                             text = categoryName,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F1F24),
+                            color = TextPrimaryOnDark,
                             fontSize = 18.sp
                         )
                         Text(
@@ -2846,7 +2854,7 @@ fun CategoryBillsModal(
                 Text(
                     text = "No bills found in this category.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6E6D7A)
+                    color = TextSecondaryOnDark
                 )
             } else {
                 LazyColumn(
@@ -2859,7 +2867,7 @@ fun CategoryBillsModal(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F3FF))
+                            colors = CardDefaults.cardColors(containerColor = ForestSurfaceVariant)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -2873,14 +2881,14 @@ fun CategoryBillsModal(
                                         text = expense.description,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF1F1F24),
+                                        color = TextPrimaryOnDark,
                                         fontSize = 14.sp
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "Group: ${expense.groupName}${if (expense.dueDate.isNotBlank()) " • Due: ${expense.dueDate}" else ""}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF6E6D7A),
+                                        color = TextSecondaryOnDark,
                                         fontSize = 11.5.sp
                                     )
                                     if (expense.notes.isNotBlank()) {
