@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
@@ -294,6 +295,42 @@ fun MoneySightScreen(
                     onOpenManagePresetsClicked = { viewModel.openSettingsDialog() },
                     onAddExpenseClicked = { viewModel.onAddExpenseSubmitted() }
                 )
+            }
+
+            // Dedicated Right-Aligned Monthly List Switcher Button placed between "Where is your money going?" and "Your Expenses"
+            item(key = "monthly_list_bar") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .height(38.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(EntryTealContainer)
+                            .clickable { viewModel.openExpenseListsDialog() }
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = "Monthly Lists",
+                                tint = EntryTeal,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = activeListName,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = EntryTeal,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
             }
 
             // 3. GROUP 3: Your Expenses Header with Spent, Stamped, Unstamped Summary

@@ -209,36 +209,6 @@ fun ExpenseFilterBar(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            // Create Next Month / Switch Month Lists Button
-            Box(
-                modifier = Modifier
-                    .height(42.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(EntryTealContainer)
-                    .clickable { onOpenListsClicked() }
-                    .padding(horizontal = 10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Monthly Lists",
-                        tint = EntryTeal,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = activeListName,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = EntryTeal,
-                        fontSize = 11.sp
-                    )
-                }
-            }
         }
 
         // Expanded Full-Width Search Input Field
