@@ -100,6 +100,7 @@ import com.moneysight.app.ui.theme.IncomeGreenContainer
 import com.moneysight.app.ui.theme.OnChecklistPurple
 import com.moneysight.app.ui.theme.TextPrimaryOnDark
 import com.moneysight.app.ui.theme.TextSecondaryOnDark
+import com.moneysight.app.ui.theme.WarningAmber
 import com.moneysight.app.util.CurrencyUtils
 import com.moneysight.app.viewmodel.AppScreen
 import com.moneysight.app.viewmodel.MainExpenseStampFilter
@@ -297,8 +298,12 @@ fun MoneySightScreen(
                 )
             }
 
-            // Dedicated Right-Aligned Monthly List Switcher Button placed between "Where is your money going?" and "Your Expenses"
+            // Dedicated Right-Aligned Monthly List Switcher Button (Unique Green Live vs Amber Secondary)
             item(key = "monthly_list_bar") {
+                val isLiveList = activeListId == "current"
+                val buttonBg = if (isLiveList) IncomeGreenContainer else WarningAmber.copy(alpha = 0.22f)
+                val buttonBorder = if (isLiveList) IncomeGreen else WarningAmber
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
@@ -307,27 +312,39 @@ fun MoneySightScreen(
                     Box(
                         modifier = Modifier
                             .height(38.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(EntryTealContainer)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(buttonBg)
+                            .border(1.5.dp, buttonBorder, RoundedCornerShape(14.dp))
                             .clickable { viewModel.openExpenseListsDialog() }
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.DateRange,
-                                contentDescription = "Monthly Lists",
-                                tint = EntryTeal,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = activeListName,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = EntryTeal,
-                                fontSize = 12.sp
-                            )
+                            if (isLiveList) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(IncomeGreen)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "LIVE",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = IncomeGreen,
+                                    fontSize = 12.sp,
+                                    letterSpacing = 0.8.sp
+                                )
+                            } else {
+                                Text(
+                                    text = "⚡ Secondary: $activeListName",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = WarningAmber,
+                                    fontSize = 12.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -335,6 +352,8 @@ fun MoneySightScreen(
 
             // 3. GROUP 3: Your Expenses Header with Spent, Stamped, Unstamped Summary
             item(key = "your_expenses_header") {
+                val isLiveList = activeListId == "current"
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -380,14 +399,14 @@ fun MoneySightScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(EntryTealContainer)
+                                        .background(if (isLiveList) IncomeGreenContainer else WarningAmber.copy(alpha = 0.22f))
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = activeListName,
+                                        text = if (isLiveList) "Live" else activeListName,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
-                                        color = EntryTeal,
+                                        color = if (isLiveList) IncomeGreen else WarningAmber,
                                         fontSize = 10.sp
                                     )
                                 }
