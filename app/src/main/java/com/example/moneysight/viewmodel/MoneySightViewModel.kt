@@ -1123,10 +1123,27 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // Graph / Analytics Breakdown State
+    // Live Expenses State for Graph Analytics
+    val liveExpenses: StateFlow<List<Expense>> = repository.expensesFlow.map { list ->
+        list.filter { it.listId == "current" || it.listId.isBlank() }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    val totalLiveExpenses: StateFlow<Double> = liveExpenses.map { list ->
+        list.sumOf { it.amount }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 0.0
+    )
+
+    // Graph / Analytics Breakdown State (STRICTLY reflects Live expenses ONLY)
     val categoryBreakdownList: StateFlow<List<CategoryBreakdownData>> = combine(
-        expenses,
-        totalExpenses,
+        liveExpenses,
+        totalLiveExpenses,
         selectedPresets
     ) { list, total, tickedPresets ->
         if (list.isEmpty() || total <= 0) {

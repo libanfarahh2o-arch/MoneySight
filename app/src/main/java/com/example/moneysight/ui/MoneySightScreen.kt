@@ -84,6 +84,7 @@ import com.moneysight.app.ui.components.OverbudgetWarningDialog
 import com.moneysight.app.ui.components.ResetAllStampsConfirmationDialog
 import com.moneysight.app.ui.components.SelectBillToEditDialog
 import com.moneysight.app.ui.components.SettingsDialog
+import com.moneysight.app.ui.components.SimulateGraphDialog
 import com.moneysight.app.ui.theme.ChecklistPurpleContainer
 import com.moneysight.app.ui.theme.ChecklistPurpleLight
 import com.moneysight.app.ui.theme.ChecklistPurplePrimary
@@ -192,6 +193,12 @@ fun MoneySightScreen(
     val activeListId by viewModel.activeListId.collectAsStateWithLifecycle()
     val expenseLists by viewModel.expenseLists.collectAsStateWithLifecycle()
     val showExpenseListsDialog by viewModel.showExpenseListsDialog.collectAsStateWithLifecycle()
+
+    // Live Expenses & Graph Analytics State
+    val liveExpenses by viewModel.liveExpenses.collectAsStateWithLifecycle()
+    val totalLiveExpenses by viewModel.totalLiveExpenses.collectAsStateWithLifecycle()
+    val categoryBreakdowns by viewModel.categoryBreakdownList.collectAsStateWithLifecycle()
+    val showSimulateGraphDialog by viewModel.showSimulateGraphDialog.collectAsStateWithLifecycle()
 
     val activeListName = remember(activeListId, expenseLists) {
         expenseLists.find { it.id == activeListId }?.name ?: "This Month"
@@ -991,6 +998,16 @@ fun MoneySightScreen(
             onPromoteListToLive = { viewModel.promoteListToLive(it) },
             onDeleteList = { viewModel.deleteExpenseList(it) },
             onDismiss = { viewModel.dismissExpenseListsDialog() }
+        )
+    }
+
+    // Graph / Analytics Breakdown Dialog (STRICTLY reflects Live expenses ONLY)
+    if (showSimulateGraphDialog) {
+        SimulateGraphDialog(
+            categoryBreakdowns = categoryBreakdowns,
+            totalExpenses = totalLiveExpenses,
+            allExpenses = liveExpenses,
+            onDismiss = { viewModel.dismissSimulateGraphDialog() }
         )
     }
 }

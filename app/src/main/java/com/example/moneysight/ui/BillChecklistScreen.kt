@@ -141,6 +141,8 @@ fun BillChecklistScreen(
     val isGroupedChecklistMode by viewModel.isGroupedChecklistMode.collectAsStateWithLifecycle()
 
     val categoryBreakdowns by viewModel.categoryBreakdownList.collectAsStateWithLifecycle()
+    val liveExpenses by viewModel.liveExpenses.collectAsStateWithLifecycle()
+    val totalLiveExpenses by viewModel.totalLiveExpenses.collectAsStateWithLifecycle()
     val showSimulateGraphDialog by viewModel.showSimulateGraphDialog.collectAsStateWithLifecycle()
     val showResetAllBillsDialog by viewModel.showResetAllBillsDialog.collectAsStateWithLifecycle()
 
@@ -871,12 +873,12 @@ fun BillChecklistScreen(
         )
     }
 
-    // Simulate Category Breakdown Graph Dialog
+    // Simulate Category Breakdown Graph Dialog (STRICTLY reflects Live expenses ONLY)
     if (showSimulateGraphDialog) {
         SimulateGraphDialog(
             categoryBreakdowns = categoryBreakdowns,
-            totalExpenses = totalExpenses,
-            allExpenses = checklistExpenses,
+            totalExpenses = totalLiveExpenses,
+            allExpenses = liveExpenses,
             onDismiss = { viewModel.dismissSimulateGraphDialog() }
         )
     }
