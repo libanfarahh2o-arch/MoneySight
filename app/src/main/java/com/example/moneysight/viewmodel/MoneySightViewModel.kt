@@ -210,6 +210,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun selectExpenseList(listId: String) {
+        _isStampModeActive.value = false
         viewModelScope.launch {
             repository.setActiveListId(listId)
         }
@@ -750,16 +751,25 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // Stamp Mode Actions
+    // Stamp Mode Actions (Only permitted on active Live list)
     fun toggleStampMode() {
+        if (activeListId.value != "current") {
+            _isStampModeActive.value = false
+            return
+        }
         _isStampModeActive.value = !_isStampModeActive.value
     }
 
     fun setStampModeActive(active: Boolean) {
+        if (activeListId.value != "current" && active) {
+            _isStampModeActive.value = false
+            return
+        }
         _isStampModeActive.value = active
     }
 
     fun toggleExpenseStampedStatus(expenseId: String) {
+        if (activeListId.value != "current") return
         viewModelScope.launch {
             repository.toggleExpenseStampedStatus(expenseId)
         }

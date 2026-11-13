@@ -12,8 +12,8 @@ android {
         applicationId = "com.moneysight.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 145
-        versionName = "14.5"
+        versionCode = 146
+        versionName = "14.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

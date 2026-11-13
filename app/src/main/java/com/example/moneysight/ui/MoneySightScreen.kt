@@ -662,13 +662,16 @@ fun MoneySightScreen(
                         }
                     }
                 } else {
+                    val isLiveList = activeListId == "current"
+                    val isStampActiveOnLive = isStampModeActive && isLiveList
+
                     items(
                         items = filteredExpenses,
                         key = { it.id }
                     ) { expense ->
                         ExpenseItem(
                             expense = expense,
-                            isStampModeActive = isStampModeActive,
+                            isStampModeActive = isStampActiveOnLive,
                             onToggleStampedClicked = { viewModel.toggleExpenseStampedStatus(expense.id) }
                         )
                     }
@@ -677,6 +680,9 @@ fun MoneySightScreen(
 
             // 5. Scrollable Action Buttons: Presets (circular) & Stamp (pill) attached to background
             item(key = "presets_stamp_actions") {
+                val isLiveList = activeListId == "current"
+                val isStampActiveOnLive = isStampModeActive && isLiveList
+
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -701,14 +707,15 @@ fun MoneySightScreen(
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    // 2. Circular Stamp Action Button (Matching the bill rubber stamp design!)
-                    val stampBtnInkColor = if (isStampModeActive) Color(0xFF4CAF50) else Color(0xFF2E7D32)
-                    val stampBtnLightColor = if (isStampModeActive) Color(0xFF81C784) else Color(0xFF388E3C)
+                    // 2. Circular Stamp Action Button (Only allowed on Live list!)
+                    val stampBtnAlpha = if (isLiveList) 1f else 0.4f
+                    val stampBtnInkColor = if (isStampActiveOnLive) Color(0xFF4CAF50) else Color(0xFF2E7D32)
+                    val stampBtnLightColor = if (isStampActiveOnLive) Color(0xFF81C784) else Color(0xFF388E3C)
                     val stampBtnBrush = Brush.linearGradient(
                         colors = listOf(
-                            stampBtnInkColor.copy(alpha = 0.95f),
-                            stampBtnLightColor.copy(alpha = 0.88f),
-                            stampBtnInkColor.copy(alpha = 0.92f)
+                            stampBtnInkColor.copy(alpha = 0.95f * stampBtnAlpha),
+                            stampBtnLightColor.copy(alpha = 0.88f * stampBtnAlpha),
+                            stampBtnInkColor.copy(alpha = 0.92f * stampBtnAlpha)
                         )
                     )
 
@@ -717,8 +724,12 @@ fun MoneySightScreen(
                             .size(48.dp)
                             .rotate(-10f)
                             .clip(CircleShape)
-                            .background(if (isStampModeActive) IncomeGreen.copy(alpha = 0.28f) else ForestSurfaceVariant)
-                            .clickable { viewModel.toggleStampMode() },
+                            .background(if (isStampActiveOnLive) IncomeGreen.copy(alpha = 0.28f) else ForestSurfaceVariant)
+                            .clickable {
+                                if (isLiveList) {
+                                    viewModel.toggleStampMode()
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Canvas(modifier = Modifier.fillMaxSize()) {
