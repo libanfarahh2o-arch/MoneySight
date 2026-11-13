@@ -1113,53 +1113,74 @@ fun EditExpenseDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = onConfirm,
-                enabled = descriptionInput.isNotBlank() && amountInput.toDoubleOrNull()?.let { it > 0 } == true,
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MintGreenPrimary,
-                    contentColor = OnMintGreen
-                )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Save Changes", fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (onDelete != null) {
-                    Button(
-                        onClick = onDelete,
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = WarningRed,
-                            contentColor = TextPrimaryOnDark
-                        )
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.DeleteOutline,
-                                contentDescription = "Delete",
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Delete", fontWeight = FontWeight.Bold)
-                        }
-                    }
+                // Primary Action: Full-Width Save Changes Button
+                Button(
+                    onClick = onConfirm,
+                    enabled = descriptionInput.isNotBlank() && amountInput.toDoubleOrNull()?.let { it > 0 } == true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(46.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MintGreenPrimary,
+                        contentColor = OnMintGreen
+                    )
+                ) {
+                    Text("Save Changes", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
 
-                OutlinedButton(
-                    onClick = onDismiss,
-                    shape = RoundedCornerShape(10.dp),
-                    border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
+                // Secondary Actions: Centered Side-by-Side Delete & Cancel Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Cancel", color = TextSecondaryOnDark)
+                    if (onDelete != null) {
+                        Button(
+                            onClick = onDelete,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(42.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = WarningRed,
+                                contentColor = TextPrimaryOnDark
+                            )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DeleteOutline,
+                                    contentDescription = "Delete",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Delete", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(42.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = ButtonDefaults.outlinedButtonBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(ForestCardBorder))
+                    ) {
+                        Text("Cancel", color = TextSecondaryOnDark, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
                 }
             }
-        }
+        },
+        dismissButton = null
     )
 
     // Category Selector Pop-up
