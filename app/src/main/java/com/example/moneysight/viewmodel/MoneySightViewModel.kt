@@ -1028,6 +1028,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
 
     // Edit Expense Management
     fun startEditingExpense(expense: Expense) {
+        _showSelectBillToEditDialog.value = false
         _expenseToEdit.value = expense
         _editDescriptionInput.value = expense.description
         _editAmountInput.value = expense.amount.toString()
@@ -1035,12 +1036,12 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         _editGroupIdInput.value = expense.groupId
         _editNotesInput.value = expense.notes
         _editDueDateInput.value = expense.dueDate
-        _editCategoryInput.value = if (expense.category.isNotBlank()) expense.category else "Expenses"
     }
 
     fun dismissEditDialog() {
         _expenseToEdit.value = null
         _pendingOverbudgetEdit.value = null
+        _showSelectBillToEditDialog.value = true
     }
 
     fun onEditDescriptionChanged(text: String) {
@@ -1120,6 +1121,7 @@ class MoneySightViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             repository.deleteExpense(expense.id)
             _expenseToDelete.value = null
+            _showSelectBillToEditDialog.value = true
         }
     }
 
